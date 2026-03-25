@@ -1,0 +1,12 @@
+*.php~
+*.swp
+.DS_Store
+node_modules/
+vendor/
+.env
+.vscode/
+.idea/
+*.log
+uploads/avatars/*
+!uploads/avatars/.gitkeep
+config/database.php

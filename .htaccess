@@ -1,0 +1,17 @@
+RewriteEngine On
+
+# Protect directories
+Options -Indexes
+
+# Protect config files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect includes
+RewriteRule ^config/ - [F,L]
+RewriteRule ^includes/ - [F,L]
+
+# Set default charset
+AddDefaultCharset UTF-8

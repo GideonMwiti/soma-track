@@ -1,0 +1,213 @@
+/* =============================================
+   SomaTrack - Dashboard Layout Stylesheet
+   ============================================= */
+
+/* ---- Top Navbar ---- */
+.st-topbar {
+    background: var(--st-dark);
+    border-bottom: 1px solid var(--st-dark-border);
+    height: 64px;
+    z-index: 1040;
+}
+.st-brand {
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--st-primary);
+}
+.st-search-bar {
+    background: var(--st-dark-surface);
+    border-radius: var(--st-radius-sm);
+    border: 1px solid var(--st-dark-border);
+    transition: var(--st-transition);
+    min-width: 260px;
+}
+.st-search-bar:focus-within {
+    border-color: var(--st-primary);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+}
+.st-search-bar input { font-size: 0.85rem; }
+.st-search-bar input:focus { box-shadow: none; }
+
+.st-nav-icon { position: relative; }
+.st-notif-badge { font-size: 0.65rem; }
+.st-user-dropdown { border: none; }
+.st-dropdown {
+    background: var(--st-dark-card);
+    border: 1px solid var(--st-dark-border);
+    border-radius: var(--st-radius);
+    box-shadow: var(--st-shadow);
+    padding: 8px;
+}
+.st-dropdown .dropdown-item {
+    color: var(--st-text);
+    border-radius: var(--st-radius-sm);
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    transition: var(--st-transition);
+}
+.st-dropdown .dropdown-item:hover {
+    background: var(--st-dark-surface);
+    color: var(--st-primary-light);
+}
+.st-dropdown .dropdown-item.text-danger:hover { color: var(--st-danger) !important; }
+.st-dropdown .dropdown-divider { border-color: var(--st-dark-border); }
+
+/* ---- Wrapper ---- */
+.st-wrapper {
+    display: flex;
+    min-height: 100vh;
+    padding-top: 64px;
+}
+
+/* ---- Sidebar ---- */
+.st-sidebar {
+    width: 260px;
+    background: rgba(10, 10, 26, 0.98);
+    border-right: 1px solid var(--st-dark-border);
+    position: fixed;
+    top: 64px;
+    bottom: 0;
+    left: 0;
+    z-index: 1030;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+.st-sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px 0;
+}
+.st-sidebar-nav {
+    list-style: none;
+    padding: 0 12px;
+    margin: 0;
+    flex: 1;
+}
+.st-sidebar-heading {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--st-text-muted);
+    padding: 16px 16px 8px;
+}
+.st-sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    color: var(--st-text-muted);
+    border-radius: var(--st-radius-sm);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: var(--st-transition);
+    margin-bottom: 2px;
+}
+.st-sidebar-nav a i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+.st-sidebar-nav a:hover {
+    background: var(--st-dark-surface);
+    color: var(--st-text);
+}
+.st-sidebar-nav a.active {
+    background: rgba(72, 52, 212, 0.12);
+    color: var(--st-primary-light);
+}
+.st-sidebar-nav a .badge {
+    font-size: 0.7rem;
+}
+
+/* ---- Streak Widget ---- */
+.st-streak-widget {
+    padding: 16px 20px;
+    margin: 12px;
+    background: var(--st-dark-surface);
+    border-radius: var(--st-radius);
+    border: 1px solid var(--st-dark-border);
+}
+
+/* ---- Main Content ---- */
+.st-content {
+    flex: 1;
+    margin-left: 260px;
+    min-height: calc(100vh - 64px);
+}
+
+/* ---- Dashboard Page Title ---- */
+.st-page-header {
+    margin-bottom: 28px;
+}
+.st-page-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+.st-page-subtitle {
+    color: var(--st-text-muted);
+    font-size: 0.9rem;
+}
+
+/* ---- Table Styles ---- */
+.st-table {
+    width: 100%;
+    color: var(--st-text);
+}
+.st-table thead th {
+    background: var(--st-dark-surface);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--st-text-muted);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--st-dark-border);
+}
+.st-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--st-dark-border);
+    vertical-align: middle;
+    font-size: 0.88rem;
+}
+.st-table tbody tr:hover { background: rgba(108, 92, 231, 0.05); }
+
+/* ---- Responsive ---- */
+@media (max-width: 991.98px) {
+    .st-sidebar {
+        transform: translateX(-100%);
+    }
+    .st-sidebar.show {
+        transform: translateX(0);
+    }
+    .st-content {
+        margin-left: 0;
+    }
+}
+
+/* ---- Sidebar overlay on mobile ---- */
+.st-sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1025;
+}
+.st-sidebar-overlay.show { display: block; }
+
+/* ---- Admin sidebar ---- */
+.st-admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(253, 121, 168, 0.12);
+    color: var(--st-accent);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
