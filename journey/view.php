@@ -58,11 +58,18 @@ if (!in_array($journeyId, $_SESSION['viewed_journeys'])) {
     $_SESSION['viewed_journeys'][] = $journeyId;
 }
 
-// Get steps
-$stepsStmt = $db->prepare("SELECT s.*, 
+// Get steps - Only show drafts to owner or admin
+$stepsSql = "SELECT s.*, 
     (SELECT COUNT(*) FROM step_comments WHERE step_id = s.id AND is_deleted = 0) AS comment_count,
     (SELECT COUNT(*) FROM aha_votes WHERE step_id = s.id) AS aha_count 
-    FROM steps s WHERE s.journey_id = ? ORDER BY s.step_number ASC");
+    FROM steps s WHERE s.journey_id = ? ";
+
+if (!$isOwner && !isAdmin()) {
+    $stepsSql .= " AND s.is_draft = 0 ";
+}
+$stepsSql .= " ORDER BY s.step_number ASC";
+
+$stepsStmt = $db->prepare($stepsSql);
 $stepsStmt->execute([$journeyId]);
 $steps = $stepsStmt->fetchAll();
 
@@ -122,7 +129,9 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
             <?php endif; ?>
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <div class="d-flex align-items-center gap-2">
-                    <img src="<?= getAvatarUrl($journey['avatar']) ?>" class="rounded-circle" width="28" height="28" alt="">
+                    <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
+                        <?= substr(sanitize($journey['username']), 0, 1) ?>
+                    </div>
                     <a href="<?= SITE_URL ?>/user/profile.php?id=<?= $journey['user_id'] ?>" class="text-decoration-none"><?= sanitize($journey['username']) ?></a>
                 </div>
                 <small class="text-muted"><i class="bi bi-eye me-1"></i><?= number_format($journey['view_count']) ?> views</small>
@@ -218,6 +227,9 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                                         $stepBadge = ['pending' => 'st-badge-warning', 'in_progress' => 'st-badge-info', 'completed' => 'st-badge-success'];
                                         ?>
                                         <span class="st-badge <?= $stepBadge[$step['status']] ?>" style="font-size:0.6rem;"><?= ucfirst(str_replace('_', ' ', $step['status'])) ?></span>
+                                        <?php if ($step['is_draft']): ?>
+                                            <span class="st-badge st-badge-secondary" style="font-size:0.6rem;"><i class="bi bi-eye-slash-fill me-1"></i>Draft</span>
+                                        <?php endif; ?>
                                         <?php if ($step['estimated_days']): ?>
                                             <small class="text-muted"><i class="bi bi-clock me-1"></i><?= $step['estimated_days'] ?>d</small>
                                         <?php endif; ?>
@@ -237,11 +249,21 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                                     <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
                                     <ul class="dropdown-menu dropdown-menu-end st-dropdown">
                                         <?php if ($step['status'] !== 'completed'): ?>
-                                            <li><a class="dropdown-item" href="<?= SITE_URL ?>/api/steps.php?action=status&id=<?= $step['id'] ?>&status=in_progress&token=<?= generateCSRFToken() ?>"><i class="bi bi-play me-2"></i>Mark In Progress</a></li>
-                                            <li><a class="dropdown-item" href="<?= SITE_URL ?>/api/steps.php?action=status&id=<?= $step['id'] ?>&status=completed&token=<?= generateCSRFToken() ?>"><i class="bi bi-check-circle me-2"></i>Mark Complete</a></li>
+                                            <li><a class="dropdown-item st-api-toggle-status" href="#" data-id="<?= $step['id'] ?>" data-status="in_progress" data-token="<?= generateCSRFToken() ?>"><i class="bi bi-play me-2"></i>Mark In Progress</a></li>
+                                            <li><a class="dropdown-item st-api-toggle-status" href="#" data-id="<?= $step['id'] ?>" data-status="completed" data-token="<?= generateCSRFToken() ?>"><i class="bi bi-check-circle me-2"></i>Mark Complete</a></li>
                                         <?php else: ?>
-                                            <li><a class="dropdown-item" href="<?= SITE_URL ?>/api/steps.php?action=status&id=<?= $step['id'] ?>&status=in_progress&token=<?= generateCSRFToken() ?>"><i class="bi bi-arrow-counterclockwise me-2"></i>Reopen</a></li>
+                                            <li><a class="dropdown-item st-api-toggle-status" href="#" data-id="<?= $step['id'] ?>" data-status="in_progress" data-token="<?= generateCSRFToken() ?>"><i class="bi bi-arrow-counterclockwise me-2"></i>Reopen</a></li>
                                         <?php endif; ?>
+                                        <li><a class="dropdown-item st-api-toggle-draft" href="#" data-id="<?= $step['id'] ?>" data-token="<?= generateCSRFToken() ?>">
+                                            <i class="bi <?= $step['is_draft'] ? 'bi-eye' : 'bi-eye-slash' ?> me-2"></i><?= $step['is_draft'] ? 'Publish' : 'Make Draft' ?>
+                                        </a></li>
+                                        <li><a class="dropdown-item st-edit-step-btn" href="#" 
+                                            data-id="<?= $step['id'] ?>" 
+                                            data-title="<?= sanitize($step['title']) ?>" 
+                                            data-description="<?= sanitize($step['description']) ?>" 
+                                            data-days="<?= $step['estimated_days'] ?>">
+                                            <i class="bi bi-pencil me-2"></i>Edit Step
+                                        </a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-danger" href="<?= SITE_URL ?>/api/steps.php?action=delete&id=<?= $step['id'] ?>&token=<?= generateCSRFToken() ?>" onclick="return confirmDelete('Delete this step?')"><i class="bi bi-trash me-2"></i>Delete</a></li>
                                     </ul>
@@ -296,5 +318,42 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Edit Step Modal -->
+<?php if ($isOwner): ?>
+<div class="modal fade" id="editStepModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content st-card p-0" style="border:none;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Edit Step</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="<?= SITE_URL ?>/api/steps.php">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="step_id" id="edit_step_id">
+                    <div class="mb-3">
+                        <label class="st-form-label">Step Title *</label>
+                        <input type="text" name="title" id="edit_step_title" class="form-control st-form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="st-form-label">Estimated Days</label>
+                        <input type="number" name="estimated_days" id="edit_step_days" class="form-control st-form-control" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="st-form-label">Description</label>
+                        <textarea name="description" id="edit_step_desc" class="form-control st-form-control" rows="3"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-st-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-st-primary btn-sm">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../includes/dashboard_footer.php'; ?>

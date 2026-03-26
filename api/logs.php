@@ -20,6 +20,11 @@ switch ($action) {
             redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
         }
 
+        if (!checkRateLimit('api_logs', 30, 3600)) {
+            setFlash('danger', 'Too many requests. Please try again later.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
         $stepId        = (int)($_POST['step_id'] ?? 0);
         $content       = trim($_POST['content'] ?? '');
         $codeSnippet   = trim($_POST['code_snippet'] ?? '') ?: null;
@@ -77,6 +82,57 @@ switch ($action) {
         checkBadges($userId);
 
         redirect(SITE_URL . '/journey/step.php?id=' . $stepId);
+        break;
+
+    // ---- Update Log ----
+    case 'update':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(SITE_URL); }
+        if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlash('danger', 'Invalid request.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
+        $logId         = (int)($_POST['log_id'] ?? 0);
+        $content       = trim($_POST['content'] ?? '');
+        $codeSnippet   = trim($_POST['code_snippet'] ?? '') ?: null;
+        $codeLanguage  = trim($_POST['code_language'] ?? '') ?: null;
+        $youtubeUrl    = trim($_POST['youtube_url'] ?? '') ?: null;
+        $githubUrl     = trim($_POST['github_commit_url'] ?? '') ?: null;
+        $linksRaw      = trim($_POST['external_links'] ?? '');
+
+        // Verify ownership
+        $stmt = $db->prepare("SELECT id, step_id FROM daily_logs WHERE id = ? AND user_id = ?");
+        $stmt->execute([$logId, $userId]);
+        $log = $stmt->fetch();
+
+        if (!$log) {
+            setFlash('danger', 'Log entry not found.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
+        if (empty($content)) {
+            setFlash('danger', 'Log content is required.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
+        // Parse external links
+        $externalLinks = null;
+        if (!empty($linksRaw)) {
+            $links = array_filter(array_map('trim', explode("\n", $linksRaw)));
+            $valid = [];
+            foreach ($links as $link) {
+                if (filter_var($link, FILTER_VALIDATE_URL)) {
+                    $valid[] = $link;
+                }
+            }
+            $externalLinks = !empty($valid) ? json_encode($valid) : null;
+        }
+
+        $stmt = $db->prepare("UPDATE daily_logs SET content = ?, code_snippet = ?, code_language = ?, youtube_url = ?, github_commit_url = ?, external_links = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
+        $stmt->execute([$content, $codeSnippet, $codeLanguage, $youtubeUrl, $githubUrl, $externalLinks, $logId, $userId]);
+
+        setFlash('success', 'Log entry updated!');
+        redirect(SITE_URL . '/journey/step.php?id=' . $log['step_id']);
         break;
 
     // ---- Delete Log ----

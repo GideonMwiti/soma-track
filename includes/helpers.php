@@ -5,6 +5,10 @@
 
 require_once __DIR__ . '/../config/database.php';
 
+if (!defined('SITE_ROOT')) {
+    define('SITE_ROOT', dirname(__DIR__));
+}
+
 /**
  * Generate CSRF token
  */
@@ -234,6 +238,32 @@ function checkBadges(int $userId): void {
             case 'aha_votes':
                 $earned = $stats['total_aha_received'] >= $badge['criteria_value'];
                 break;
+            case 'consistent':
+                $earned = $stats['longest_streak'] >= $badge['criteria_value'];
+                break;
+            case 'community_helper':
+                $earned = ($stats['total_comments_given'] + $stats['total_aha_given']) >= $badge['criteria_value'];
+                break;
+            case 'committed':
+                // Check if any journey was completed within estimated time
+                $stmt2 = $db->prepare("SELECT j.id FROM journeys j 
+                    JOIN (SELECT journey_id, SUM(COALESCE(estimated_days, 1)) as total_est FROM steps GROUP BY journey_id) s 
+                    ON j.id = s.journey_id 
+                    WHERE j.user_id = ? AND j.status = 'completed' 
+                    AND DATEDIFF(j.updated_at, j.created_at) <= s.total_est");
+                $stmt2->execute([$userId]);
+                $earned = (bool)$stmt2->fetch();
+                break;
+            case 'diligent':
+                // Check if any completed journey has a log for every step
+                $stmt2 = $db->prepare("SELECT j.id FROM journeys j 
+                    WHERE j.user_id = ? AND j.status = 'completed' AND j.total_steps > 0
+                    AND (SELECT COUNT(DISTINCT step_id) FROM daily_logs l 
+                         JOIN steps s2 ON l.step_id = s2.id 
+                         WHERE s2.journey_id = j.id) >= j.total_steps");
+                $stmt2->execute([$userId]);
+                $earned = (bool)$stmt2->fetch();
+                break;
         }
         if ($earned) {
             $ins = $db->prepare("INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (?, ?)");
@@ -277,6 +307,14 @@ function getUserStats(int $userId): array {
     $stmt->execute([$userId]);
     $totalLogs = (int)$stmt->fetchColumn();
 
+    $stmt = $db->prepare("SELECT COUNT(*) FROM step_comments WHERE user_id = ?");
+    $stmt->execute([$userId]);
+    $totalComments = (int)$stmt->fetchColumn();
+
+    $stmt = $db->prepare("SELECT COUNT(*) FROM aha_votes WHERE user_id = ?");
+    $stmt->execute([$userId]);
+    $totalAhaGiven = (int)$stmt->fetchColumn();
+
     return [
         'current_streak'     => $user['current_streak'] ?? 0,
         'longest_streak'     => $user['longest_streak'] ?? 0,
@@ -284,7 +322,95 @@ function getUserStats(int $userId): array {
         'completed_steps'    => $completedSteps,
         'total_clones'       => $totalClones,
         'total_aha_received' => $totalAha,
+        'total_aha_given'    => $totalAhaGiven,
         'total_journeys'     => $totalJourneys,
         'total_logs'         => $totalLogs,
+        'total_comments_given' => $totalComments,
     ];
+}
+
+/**
+ * File-based caching: Set value
+ */
+function setCache(string $key, $data, int $ttl = 3600): bool {
+    $cacheDir = SITE_ROOT . '/uploads/cache/';
+    if (!is_dir($cacheDir)) mkdir($cacheDir, 0777, true);
+    
+    $file = $cacheDir . md5($key) . '.cache';
+    $cacheData = [
+        'expiry' => time() + $ttl,
+        'data'   => $data
+    ];
+    
+    return file_put_contents($file, serialize($cacheData)) !== false;
+}
+
+/**
+ * File-based caching: Get value
+ */
+function getCache(string $key) {
+    $file = SITE_ROOT . '/uploads/cache/' . md5($key) . '.cache';
+    if (!file_exists($file)) return null;
+    
+    $cacheData = unserialize(file_get_contents($file));
+    if (!$cacheData || time() > $cacheData['expiry']) {
+        @unlink($file);
+        return null;
+    }
+    
+    return $cacheData['data'];
+}
+
+/**
+ * File-based caching: Delete value
+ */
+function deleteCache(string $key): void {
+    $file = SITE_ROOT . '/uploads/cache/' . md5($key) . '.cache';
+    if (file_exists($file)) @unlink($file);
+}
+
+/**
+ * Check rate limit for an IP and endpoint
+ * @param string $endpoint The endpoint name (e.g., 'api_logs')
+ * @param int $limit Max requests per window
+ * @param int $window Window size in seconds
+ * @return bool True if allowed, false if rate limited
+ */
+function checkRateLimit(string $endpoint, int $limit = 60, int $window = 3600): bool {
+    $db = getDB();
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $now = time();
+    $cutoff = $now - $window;
+
+    try {
+        $stmt = $db->prepare("SELECT * FROM rate_limits WHERE ip_address = ? AND endpoint = ?");
+        $stmt->execute([$ip, $endpoint]);
+        $row = $stmt->fetch();
+
+        if ($row) {
+            if ($row['first_request_at'] < $cutoff) {
+                // Window expired, reset
+                $db->prepare("UPDATE rate_limits SET request_count = 1, first_request_at = ?, last_request_at = ? WHERE id = ?")
+                   ->execute([$now, $now, $row['id']]);
+                return true;
+            }
+
+            if ($row['request_count'] >= $limit) {
+                return false;
+            }
+
+            // Increment
+            $db->prepare("UPDATE rate_limits SET request_count = request_count + 1, last_request_at = ? WHERE id = ?")
+               ->execute([$now, $row['id']]);
+            return true;
+        } else {
+            // New entry
+            $db->prepare("INSERT INTO rate_limits (ip_address, endpoint, first_request_at, last_request_at) VALUES (?, ?, ?, ?)")
+               ->execute([$ip, $endpoint, $now, $now]);
+            return true;
+        }
+    } catch (PDOException $e) {
+        error_log("Rate limit error: " . $e->getMessage());
+        return true; // Allow on DB failure
+    }
 }

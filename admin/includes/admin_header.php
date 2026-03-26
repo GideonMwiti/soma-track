@@ -61,8 +61,10 @@ $notifCount = getUnreadNotificationCount($currentUser['id']);
                 <li><a href="<?= SITE_URL ?>/admin/dashboard.php" class="<?= basename($_SERVER['PHP_SELF']) === 'dashboard.php' ? 'active' : '' ?>"><i class="bi bi-shield"></i><span>Admin Panel</span></a></li>
                 <li><a href="<?= SITE_URL ?>/admin/users.php" class="<?= basename($_SERVER['PHP_SELF']) === 'users.php' ? 'active' : '' ?>"><i class="bi bi-people"></i><span>Users</span></a></li>
                 <li><a href="<?= SITE_URL ?>/admin/journeys.php" class="<?= basename($_SERVER['PHP_SELF']) === 'journeys.php' ? 'active' : '' ?>"><i class="bi bi-map"></i><span>Journeys</span></a></li>
+                <li><a href="<?= SITE_URL ?>/admin/moderation.php" class="<?= basename($_SERVER['PHP_SELF']) === 'moderation.php' ? 'active' : '' ?>"><i class="bi bi-shield-check"></i><span>Moderation</span></a></li>
                 <li><a href="<?= SITE_URL ?>/admin/comments.php" class="<?= basename($_SERVER['PHP_SELF']) === 'comments.php' ? 'active' : '' ?>"><i class="bi bi-chat-dots"></i><span>Comments</span></a></li>
                 <li><a href="<?= SITE_URL ?>/admin/featured.php" class="<?= basename($_SERVER['PHP_SELF']) === 'featured.php' ? 'active' : '' ?>"><i class="bi bi-star"></i><span>Featured</span></a></li>
+                <li><a href="<?= SITE_URL ?>/admin/analytics.php" class="<?= basename($_SERVER['PHP_SELF']) === 'analytics.php' ? 'active' : '' ?>"><i class="bi bi-graph-up"></i><span>Analytics</span></a></li>
                 <li><a href="<?= SITE_URL ?>/admin/contacts.php" class="<?= basename($_SERVER['PHP_SELF']) === 'contacts.php' ? 'active' : '' ?>"><i class="bi bi-envelope"></i><span>Contacts</span></a></li>
                 <li class="st-sidebar-heading">System</li>
                 <li><a href="<?= SITE_URL ?>/admin/logs.php" class="<?= basename($_SERVER['PHP_SELF']) === 'logs.php' ? 'active' : '' ?>"><i class="bi bi-journal-code"></i><span>Admin Logs</span></a></li>

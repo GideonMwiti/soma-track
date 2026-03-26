@@ -36,7 +36,9 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
 <div class="row g-4">
     <div class="col-lg-4">
         <div class="st-card text-center">
-            <img src="<?= getAvatarUrl($profile['avatar']) ?>" class="rounded-circle mb-3" width="100" height="100" alt="">
+            <div class="st-avatar-initial mb-3 mx-auto" style="width:100px;height:100px;font-size:2.5rem;">
+                <?= substr(sanitize($profile['username']), 0, 1) ?>
+            </div>
             <h4 class="fw-bold mb-1"><?= sanitize($profile['full_name']) ?></h4>
             <p class="text-muted mb-2">@<?= sanitize($profile['username']) ?></p>
             <?php if ($profile['bio']): ?>

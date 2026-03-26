@@ -17,8 +17,12 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(SITE_URL . '/user/dashboard.php'); }
         if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
             setFlash('danger', 'Invalid request.');
-            header('Location: ' . $_SERVER['HTTP_REFERER'] ?? SITE_URL);
-            exit;
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
+        if (!checkRateLimit('api_steps', 20, 3600)) {
+            setFlash('danger', 'Too many requests. Please wait a while.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
         }
 
         $journeyId    = (int)($_POST['journey_id'] ?? 0);
@@ -58,6 +62,41 @@ switch ($action) {
 
         setFlash('success', 'Step added!');
         redirect(SITE_URL . '/journey/view.php?id=' . $journeyId);
+        break;
+
+    // ---- Update Step ----
+    case 'update':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(SITE_URL . '/user/dashboard.php'); }
+        if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlash('danger', 'Invalid request.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
+        $stepId       = (int)($_POST['step_id'] ?? 0);
+        $title        = trim($_POST['title'] ?? '');
+        $description  = trim($_POST['description'] ?? '');
+        $estimatedDays = !empty($_POST['estimated_days']) ? (int)$_POST['estimated_days'] : null;
+
+        // Verify ownership via journey
+        $stmt = $db->prepare("SELECT s.*, j.user_id, j.id AS journey_id FROM steps s JOIN journeys j ON s.journey_id = j.id WHERE s.id = ?");
+        $stmt->execute([$stepId]);
+        $step = $stmt->fetch();
+
+        if (!$step || (int)$step['user_id'] !== $userId) {
+            setFlash('danger', 'Step not found.');
+            redirect(SITE_URL . '/user/dashboard.php');
+        }
+
+        if (empty($title)) {
+            setFlash('danger', 'Step title is required.');
+            redirect(SITE_URL . '/journey/view.php?id=' . $step['journey_id']);
+        }
+
+        $stmt = $db->prepare("UPDATE steps SET title = ?, description = ?, estimated_days = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->execute([$title, $description ?: null, $estimatedDays, $stepId]);
+
+        setFlash('success', 'Step updated!');
+        redirect(SITE_URL . '/journey/view.php?id=' . $step['journey_id']);
         break;
 
     // ---- Update Step Status ----
@@ -106,6 +145,9 @@ switch ($action) {
             checkBadges($userId);
         }
 
+        if ($_GET['format'] === 'json') {
+            jsonResponse(['success' => true, 'message' => 'Step status updated.', 'new_status' => $newStatus]);
+        }
         setFlash('success', 'Step status updated.');
         redirect(SITE_URL . '/journey/view.php?id=' . $step['journey_id']);
         break;
@@ -147,6 +189,35 @@ switch ($action) {
         $db->prepare($updateSql)->execute([$step['journey_id']]);
 
         setFlash('success', 'Step deleted.');
+        redirect(SITE_URL . '/journey/view.php?id=' . $step['journey_id']);
+        break;
+
+    // ---- Toggle Draft ----
+    case 'toggle_draft':
+        $stepId = (int)($_GET['id'] ?? 0);
+        $token = $_GET['token'] ?? '';
+
+        if (!validateCSRFToken($token)) {
+            setFlash('danger', 'Invalid request.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
+        $stmt = $db->prepare("SELECT s.*, j.user_id, j.id AS journey_id FROM steps s JOIN journeys j ON s.journey_id = j.id WHERE s.id = ?");
+        $stmt->execute([$stepId]);
+        $step = $stmt->fetch();
+
+        if (!$step || (int)$step['user_id'] !== $userId) {
+            setFlash('danger', 'Step not found.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
+        $newDraft = $step['is_draft'] ? 0 : 1;
+        $db->prepare("UPDATE steps SET is_draft = ? WHERE id = ?")->execute([$newDraft, $stepId]);
+
+        if ($_GET['format'] === 'json') {
+            jsonResponse(['success' => true, 'message' => $newDraft ? 'Step hidden as draft.' : 'Step is now public.', 'is_draft' => $newDraft]);
+        }
+        setFlash('success', $newDraft ? 'Step hidden as draft.' : 'Step is now public.');
         redirect(SITE_URL . '/journey/view.php?id=' . $step['journey_id']);
         break;
 

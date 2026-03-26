@@ -15,6 +15,11 @@ if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
     redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
 }
 
+if (!checkRateLimit('api_votes', 100, 3600)) {
+    setFlash('danger', 'Too many votes! Please slow down.');
+    redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+}
+
 $stepId = (int)($_POST['step_id'] ?? 0);
 $voteType = $_POST['vote_type'] ?? '';
 

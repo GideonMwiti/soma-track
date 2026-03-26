@@ -144,4 +144,127 @@ document.addEventListener('DOMContentLoaded', function() {
                 : 'text-muted d-block text-end mt-1';
         });
     });
+
+    // ---- Interactive Step Status Toggle ----
+    document.querySelectorAll('.st-api-toggle-status').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const stepId = this.dataset.id;
+            const status = this.dataset.status;
+            const token  = this.dataset.token;
+            const url    = `${SITE_URL}/api/steps.php?action=status&id=${stepId}&status=${status}&token=${token}&format=json`;
+            
+            stAjax(url, { method: 'GET' }).then(res => {
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    // Reload after a short delay to show updated state (or we could update UI dynamically)
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast(res.message || 'Action failed', 'danger');
+                }
+            });
+        });
+    });
+
+    // ---- Interactive Step Draft Toggle ----
+    document.querySelectorAll('.st-api-toggle-draft').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const stepId = this.dataset.id;
+            const token  = this.dataset.token;
+            const url    = `${SITE_URL}/api/steps.php?action=toggle_draft&id=${stepId}&token=${token}&format=json`;
+            
+            stAjax(url, { method: 'GET' }).then(res => {
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast(res.message || 'Action failed', 'danger');
+                }
+            });
+        });
+    });
+
+    // ---- Edit Step Modal Logic ----
+    const editStepModal = document.getElementById('editStepModal');
+    if (editStepModal) {
+        const bsModal = new bootstrap.Modal(editStepModal);
+        document.querySelectorAll('.st-edit-step-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('edit_step_id').value = this.dataset.id;
+                document.getElementById('edit_step_title').value = this.dataset.title;
+                document.getElementById('edit_step_desc').value = this.dataset.description;
+                document.getElementById('edit_step_days').value = this.dataset.days || '';
+                bsModal.show();
+            });
+        });
+    }
+
+    // ---- Edit Log Modal Logic ----
+    const editLogModal = document.getElementById('editLogModal');
+    if (editLogModal) {
+        const bsLogModal = new bootstrap.Modal(editLogModal);
+        document.querySelectorAll('.st-edit-log-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('edit_log_id').value = this.dataset.id;
+                document.getElementById('edit_log_content').value = this.dataset.content;
+                document.getElementById('edit_log_code').value = this.dataset.code;
+                document.getElementById('edit_log_lang').value = this.dataset.lang;
+                document.getElementById('edit_log_youtube').value = this.dataset.youtube;
+                document.getElementById('edit_log_github').value = this.dataset.github;
+                document.getElementById('edit_log_links').value = this.dataset.links;
+                bsLogModal.show();
+            });
+        });
+    }
+
+    // ---- Edit Comment Modal Logic ----
+    const editCommentModal = document.getElementById('editCommentModal');
+    if (editCommentModal) {
+        const bsCommentModal = new bootstrap.Modal(editCommentModal);
+        document.querySelectorAll('.st-edit-comment-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('edit_comment_id').value = this.dataset.id;
+                document.getElementById('edit_comment_content').value = this.dataset.content;
+                bsCommentModal.show();
+            });
+        });
+    }
+
+    // ---- Reply System Logic ----
+    document.querySelectorAll('.st-reply-toggle').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const id = this.dataset.id;
+            document.getElementById(`reply-form-${id}`).classList.remove('d-none');
+        });
+    });
+
+    document.querySelectorAll('.st-reply-cancel').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            document.getElementById(`reply-form-${id}`).classList.add('d-none');
+        });
+    });
+
+    // ---- Copy Code Utility ----
+    document.querySelectorAll('.st-copy-code-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const code = this.dataset.code;
+            const icon = this.querySelector('i');
+            
+            navigator.clipboard.writeText(code).then(() => {
+                icon.classList.replace('bi-copy', 'bi-check2');
+                this.classList.replace('text-muted', 'text-success');
+                
+                setTimeout(() => {
+                    icon.classList.replace('bi-check2', 'bi-copy');
+                    this.classList.replace('text-success', 'text-muted');
+                }, 2000);
+            });
+        });
+    });
 });

@@ -39,7 +39,24 @@ $logs = $logsStmt->fetchAll();
 // Get comments
 $commentsStmt = $db->prepare("SELECT sc.*, u.username, u.avatar FROM step_comments sc JOIN users u ON sc.user_id = u.id WHERE sc.step_id = ? AND sc.is_deleted = 0 ORDER BY sc.created_at ASC");
 $commentsStmt->execute([$stepId]);
-$comments = $commentsStmt->fetchAll();
+$allComments = $commentsStmt->fetchAll();
+
+// Group comments by parent
+$comments = [];
+$replies = [];
+foreach ($allComments as $c) {
+    if (!$c['parent_id']) {
+        $comments[$c['id']] = $c;
+        $comments[$c['id']]['replies'] = [];
+    } else {
+        $replies[] = $c;
+    }
+}
+foreach ($replies as $r) {
+    if (isset($comments[$r['parent_id']])) {
+        $comments[$r['parent_id']]['replies'][] = $r;
+    }
+}
 
 // Get aha votes
 $ahaStmt = $db->prepare("SELECT COUNT(*) AS total, 
@@ -197,31 +214,57 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                 <div class="p-3 mb-3 rounded" style="background:var(--st-dark-surface);border:1px solid var(--st-dark-border);">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <img src="<?= getAvatarUrl($log['avatar']) ?>" class="rounded-circle" width="28" height="28" alt="">
+                            <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
+                                <?= substr(sanitize($log['username']), 0, 1) ?>
+                            </div>
                             <strong style="font-size:0.85rem;"><?= sanitize($log['username']) ?></strong>
                             <small class="text-muted"><?= formatDate($log['log_date']) ?></small>
                         </div>
                         <?php if (isLoggedIn() && (int)$log['user_id'] === getCurrentUserId()): ?>
-                            <a href="<?= SITE_URL ?>/api/logs.php?action=delete&id=<?= $log['id'] ?>&token=<?= generateCSRFToken() ?>" class="btn btn-sm btn-link text-danger" onclick="return confirmDelete('Delete this log?')"><i class="bi bi-trash"></i></a>
+                            <div class="d-flex gap-1">
+                                <a href="#" class="btn btn-sm btn-link text-info st-edit-log-btn" 
+                                   data-id="<?= $log['id'] ?>"
+                                   data-content="<?= sanitize($log['content']) ?>"
+                                   data-code="<?= sanitize($log['code_snippet'] ?? '') ?>"
+                                   data-lang="<?= sanitize($log['code_language'] ?? '') ?>"
+                                   data-youtube="<?= sanitize($log['youtube_url'] ?? '') ?>"
+                                   data-github="<?= sanitize($log['github_commit_url'] ?? '') ?>"
+                                   data-links="<?= sanitize(implode("\n", json_decode($log['external_links'] ?? '[]', true))) ?>">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="<?= SITE_URL ?>/api/logs.php?action=delete&id=<?= $log['id'] ?>&token=<?= generateCSRFToken() ?>" class="btn btn-sm btn-link text-danger" onclick="return confirmDelete('Delete this log?')"><i class="bi bi-trash"></i></a>
+                            </div>
                         <?php endif; ?>
                     </div>
                     <p class="mb-2" style="font-size:0.9rem;line-height:1.6;"><?= nl2br(sanitize($log['content'])) ?></p>
 
                     <?php if ($log['code_snippet']): ?>
-                        <div class="st-code-block mb-2">
-                            <small class="text-muted d-block mb-1"><?= sanitize($log['code_language'] ?? 'code') ?></small>
+                        <div class="st-code-block mb-3 position-relative group">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;"><?= sanitize($log['code_language'] ?? 'code') ?></small>
+                                <button class="btn btn-link p-0 text-muted st-copy-code-btn" data-code="<?= sanitize($log['code_snippet']) ?>" title="Copy Code">
+                                    <i class="bi bi-copy" style="font-size:0.85rem;"></i>
+                                </button>
+                            </div>
                             <pre class="mb-0"><code><?= sanitize($log['code_snippet']) ?></code></pre>
                         </div>
                     <?php endif; ?>
 
                     <?php if ($log['youtube_url']): ?>
                         <?php
-                        preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $log['youtube_url'], $ytMatch);
-                        if (!empty($ytMatch[1])):
+                        $ytUrl = $log['youtube_url'];
+                        $ytId = '';
+                        // Robust regex for YouTube IDs
+                        if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $ytUrl, $match)) {
+                            $ytId = $match[1];
+                        }
+                        if ($ytId):
                         ?>
                         <div class="ratio ratio-16x9 mb-2" style="max-width:400px;border-radius:var(--st-radius-sm);overflow:hidden;">
-                            <iframe src="https://www.youtube.com/embed/<?= sanitize($ytMatch[1]) ?>" allowfullscreen></iframe>
+                            <iframe src="https://www.youtube.com/embed/<?= sanitize($ytId) ?>" allowfullscreen></iframe>
                         </div>
+                        <?php else: ?>
+                        <a href="<?= sanitize($ytUrl) ?>" target="_blank" class="d-inline-block mb-1 text-danger" style="font-size:0.8rem;"><i class="bi bi-youtube me-1"></i>View YouTube Resource</a><br>
                         <?php endif; ?>
                     <?php endif; ?>
 
@@ -262,15 +305,78 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                 <p class="text-muted" style="font-size:0.85rem;">No comments yet. Be the first to share your thoughts!</p>
             <?php else: ?>
                 <?php foreach ($comments as $comment): ?>
-                <div class="st-comment">
-                    <img src="<?= getAvatarUrl($comment['avatar']) ?>" class="st-comment-avatar" alt="">
+                <div class="st-comment mb-3" id="comment-<?= $comment['id'] ?>">
+                    <div class="st-avatar-initial" style="width:36px;height:36px;font-size:0.9rem;">
+                        <?= substr(sanitize($comment['username']), 0, 1) ?>
+                    </div>
                     <div class="flex-grow-1">
                         <div class="st-comment-meta">
                             <strong><?= sanitize($comment['username']) ?></strong> · <?= timeAgo($comment['created_at']) ?>
                         </div>
-                        <div class="st-comment-body"><?= nl2br(sanitize($comment['content'])) ?></div>
-                        <?php if (isLoggedIn() && ((int)$comment['user_id'] === getCurrentUserId() || isAdmin())): ?>
-                            <a href="<?= SITE_URL ?>/api/comments.php?action=delete&id=<?= $comment['id'] ?>&token=<?= generateCSRFToken() ?>" class="text-danger" style="font-size:0.75rem;" onclick="return confirmDelete('Delete this comment?')"><i class="bi bi-trash"></i> Delete</a>
+                        <div class="st-comment-body mb-2"><?= nl2br(sanitize($comment['content'])) ?></div>
+                        
+                        <div class="d-flex align-items-center gap-3">
+                            <?php if (isLoggedIn()): ?>
+                                <a href="#" class="text-muted st-reply-toggle" data-id="<?= $comment['id'] ?>" style="font-size:0.75rem;"><i class="bi bi-reply me-1"></i>Reply</a>
+                                <?php if ((int)$comment['user_id'] === getCurrentUserId()): ?>
+                                    <a href="#" class="text-info st-edit-comment-btn" style="font-size:0.75rem;" 
+                                       data-id="<?= $comment['id'] ?>" 
+                                       data-content="<?= sanitize($comment['content']) ?>">
+                                        <i class="bi bi-pencil me-1"></i>Edit
+                                    </a>
+                                <?php endif; ?>
+                                <?php if ((int)$comment['user_id'] === getCurrentUserId() || $isOwner || isAdmin()): ?>
+                                    <a href="<?= SITE_URL ?>/api/comments.php?action=delete&id=<?= $comment['id'] ?>&token=<?= generateCSRFToken() ?>" class="text-danger" style="font-size:0.75rem;" onclick="return confirmDelete('Delete this comment?')"><i class="bi bi-trash me-1"></i>Delete</a>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Reply Form (Hidden) -->
+                        <div class="mt-2 d-none st-reply-form" id="reply-form-<?= $comment['id'] ?>">
+                            <form method="POST" action="<?= SITE_URL ?>/api/comments.php">
+                                <?= csrfField() ?>
+                                <input type="hidden" name="action" value="create">
+                                <input type="hidden" name="step_id" value="<?= $stepId ?>">
+                                <input type="hidden" name="parent_id" value="<?= $comment['id'] ?>">
+                                <textarea name="content" class="form-control st-form-control mb-2" rows="2" placeholder="Write a reply..." required></textarea>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-st-primary btn-xs" style="padding:2px 10px; font-size:0.7rem;">Post Reply</button>
+                                    <button type="button" class="btn btn-st-secondary btn-xs st-reply-cancel" data-id="<?= $comment['id'] ?>" style="padding:2px 10px; font-size:0.7rem;">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Nested Replies -->
+                        <?php if (!empty($comment['replies'])): ?>
+                            <div class="st-comment-replies mt-3 ps-3 border-start">
+                                <?php foreach ($comment['replies'] as $reply): ?>
+                                    <div class="st-comment mb-2" id="comment-<?= $reply['id'] ?>">
+                                        <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
+                                            <?= substr(sanitize($reply['username']), 0, 1) ?>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="st-comment-meta">
+                                                <strong><?= sanitize($reply['username']) ?></strong> · <?= timeAgo($reply['created_at']) ?>
+                                            </div>
+                                            <div class="st-comment-body mb-1" style="font-size:0.85rem;"><?= nl2br(sanitize($reply['content'])) ?></div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <?php if (isLoggedIn()): ?>
+                                                    <?php if ((int)$reply['user_id'] === getCurrentUserId()): ?>
+                                                        <a href="#" class="text-info st-edit-comment-btn" style="font-size:0.7rem;" 
+                                                           data-id="<?= $reply['id'] ?>" 
+                                                           data-content="<?= sanitize($reply['content']) ?>">
+                                                            <i class="bi bi-pencil me-1"></i>Edit
+                                                        </a>
+                                                    <?php endif; ?>
+                                                    <?php if ((int)$reply['user_id'] === getCurrentUserId() || $isOwner || isAdmin()): ?>
+                                                        <a href="<?= SITE_URL ?>/api/comments.php?action=delete&id=<?= $reply['id'] ?>&token=<?= generateCSRFToken() ?>" class="text-danger" style="font-size:0.7rem;" onclick="return confirmDelete('Delete this?')"><i class="bi bi-trash me-1"></i>Delete</a>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -302,6 +408,100 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
             <div class="mb-2 d-flex justify-content-between"><small class="text-muted">Helpful</small><small><?= $ahaVotes['helpful'] ?? 0 ?></small></div>
             <div class="mb-2 d-flex justify-content-between"><small class="text-muted">Breakthrough</small><small><?= $ahaVotes['breakthrough'] ?? 0 ?></small></div>
             <div class="d-flex justify-content-between"><small class="text-muted">Created</small><small><?= formatDate($step['created_at']) ?></small></div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Log Modal -->
+<div class="modal fade" id="editLogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content st-card p-0" style="border:none;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Edit Log Entry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="<?= SITE_URL ?>/api/logs.php">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="log_id" id="edit_log_id">
+                    
+                    <div class="mb-3">
+                        <label class="st-form-label">What did you accomplish? *</label>
+                        <textarea name="content" id="edit_log_content" class="form-control st-form-control" rows="4" required></textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="st-form-label">Code Snippet (optional)</label>
+                            <textarea name="code_snippet" id="edit_log_code" class="form-control st-form-control" rows="5" style="font-family:monospace;font-size:0.85rem;"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="st-form-label">Language</label>
+                            <select name="code_language" id="edit_log_lang" class="form-select st-form-control">
+                                <option value="">Select language...</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="php">PHP</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                                <option value="sql">SQL</option>
+                                <option value="bash">Bash</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="st-form-label">YouTube URL</label>
+                            <input type="url" name="youtube_url" id="edit_log_youtube" class="form-control st-form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="st-form-label">GitHub Commit URL</label>
+                            <input type="url" name="github_commit_url" id="edit_log_github" class="form-control st-form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="st-form-label">External Links (one per line)</label>
+                        <textarea name="external_links" id="edit_log_links" class="form-control st-form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-st-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-st-primary btn-sm">Update Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Comment Modal -->
+<div class="modal fade" id="editCommentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content st-card p-0" style="border:none;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Edit Comment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="<?= SITE_URL ?>/api/comments.php">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="comment_id" id="edit_comment_id">
+                    <div class="mb-3">
+                        <label class="st-form-label">Comment Content</label>
+                        <textarea name="content" id="edit_comment_content" class="form-control st-form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-st-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-st-primary btn-sm">Save Changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

@@ -20,6 +20,11 @@ switch ($action) {
             redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
         }
 
+        if (!checkRateLimit('api_clone', 10, 3600)) {
+            setFlash('danger', 'You are cloning journeys too fast. Please wait a while.');
+            redirect($_SERVER['HTTP_REFERER'] ?? SITE_URL);
+        }
+
         $journeyId = (int)($_POST['journey_id'] ?? 0);
 
         // Get original journey

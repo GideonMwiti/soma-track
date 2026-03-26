@@ -324,6 +324,7 @@ a:hover { color: var(--st-primary); }
 .st-timeline {
     position: relative;
     padding-left: 30px;
+    overflow: visible;
 }
 .st-timeline::before {
     content: '';
@@ -337,6 +338,15 @@ a:hover { color: var(--st-primary); }
 .st-timeline-item {
     position: relative;
     padding-bottom: 24px;
+    z-index: 1;
+}
+.st-timeline-item:hover,
+.st-timeline-item:focus-within {
+    z-index: 20;
+}
+/* Ensure card itself is visible */
+.st-timeline-item .st-card {
+    overflow: visible;
 }
 .st-timeline-item::before {
     content: '';
@@ -660,9 +670,10 @@ a:hover { color: var(--st-primary); }
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: inherit;
     text-transform: uppercase;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 /* ---- Animations ---- */
@@ -747,6 +758,21 @@ a:hover { color: var(--st-primary); }
     height: 36px;
     border-radius: 50%;
     flex-shrink: 0;
+}
+.st-comment-replies {
+    border-left: 2px solid var(--st-dark-border);
+}
+.st-copy-code-btn {
+    opacity: 0;
+    transition: var(--st-transition);
+}
+.st-code-block:hover .st-copy-code-btn {
+    opacity: 1;
+}
+.btn-xs {
+    padding: 1px 6px;
+    font-size: 0.7rem;
+    border-radius: 4px;
 }
 .st-comment-meta {
     font-size: 0.8rem;

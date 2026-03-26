@@ -40,22 +40,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get featured journeys for display
+// Get featured journeys for display (Cached for 1 hour)
 $db = getDB();
-$featuredStmt = $db->query("SELECT j.*, u.username, u.avatar, c.name AS category_name 
-    FROM journeys j 
-    JOIN users u ON j.user_id = u.id 
-    LEFT JOIN categories c ON j.category_id = c.id 
-    WHERE j.visibility = 'public' AND j.is_featured = 1 
-    ORDER BY j.view_count DESC LIMIT 6");
-$featured = $featuredStmt->fetchAll();
+$featured = getCache('featured_journeys');
 
-$catStmt = $db->query("SELECT * FROM categories ORDER BY name");
-$categories = $catStmt->fetchAll();
+if ($featured === null) {
+    // 1. Try to get featured journeys
+    $featuredStmt = $db->query("SELECT j.*, u.username, u.avatar, c.name AS category_name 
+        FROM journeys j 
+        JOIN users u ON j.user_id = u.id 
+        LEFT JOIN categories c ON j.category_id = c.id 
+        WHERE j.visibility = 'public' AND j.is_featured = 1 
+        ORDER BY j.view_count DESC LIMIT 6");
+    $featured = $featuredStmt->fetchAll();
 
-// Get stats for landing page
-$totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
-$totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='public'")->fetchColumn();
+    // 2. Fallback: If no featured, get top viewed public journeys
+    if (empty($featured)) {
+        $popStmt = $db->query("SELECT j.*, u.username, u.avatar, c.name AS category_name 
+            FROM journeys j 
+            JOIN users u ON j.user_id = u.id 
+            LEFT JOIN categories c ON j.category_id = c.id 
+            WHERE j.visibility = 'public' 
+            ORDER BY j.view_count DESC LIMIT 3");
+        $featured = $popStmt->fetchAll();
+    }
+    
+    setCache('featured_journeys', $featured, 3600);
+}
+
+$categories = getCache('categories_list');
+if ($categories === null) {
+    $catStmt = $db->query("SELECT * FROM categories ORDER BY name");
+    $categories = $catStmt->fetchAll();
+    setCache('categories_list', $categories, 86400); // 24 hours
+}
+
+// Get stats for landing page (Cached for 1 hour)
+$stats = getCache('landing_stats');
+if ($stats === null) {
+    $totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='public'")->fetchColumn();
+    $stats = [
+        'totalUsers' => $totalUsers,
+        'totalJourneys' => $totalJourneys
+    ];
+    setCache('landing_stats', $stats, 3600);
+} else {
+    $totalUsers = $stats['totalUsers'];
+    $totalJourneys = $stats['totalJourneys'];
+}
 ?>
 
 <!-- Navbar -->
@@ -119,15 +152,15 @@ $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='pub
                 <!-- Stats -->
                 <div class="d-flex gap-5 mt-5 flex-wrap">
                     <div class="text-start">
-                        <div class="h2 fw-bold mb-0 text-white"><?= number_format($totalUsers) ?>+</div>
+                        <div class="h2 fw-bold mb-0 text-white"><?= number_format($totalUsers) ?></div>
                         <small class="text-secondary text-uppercase tracking-wider">Learners</small>
                     </div>
                     <div class="text-start">
-                        <div class="h2 fw-bold mb-0 text-white"><?= number_format($totalJourneys) ?>+</div>
+                        <div class="h2 fw-bold mb-0 text-white"><?= number_format($totalJourneys) ?></div>
                         <small class="text-secondary text-uppercase tracking-wider">Journeys</small>
                     </div>
                     <div class="text-start">
-                        <div class="h2 fw-bold mb-0 text-white"><?= count($categories) ?>+</div>
+                        <div class="h2 fw-bold mb-0 text-white"><?= count($categories) ?></div>
                         <small class="text-secondary text-uppercase tracking-wider">Categories</small>
                     </div>
                 </div>
@@ -207,44 +240,40 @@ $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='pub
             <h2 class="fw-bold mb-3">Trending <span style="color: var(--st-secondary);">Learning Paths</span></h2>
             <p class="text-muted">Top cloned roadmaps by the community</p>
         </div>
-        <div class="row g-4">
-            <?php 
-            // Dummy data if none exist or to supplement for demo
-            if (empty($featured)) {
-                $featured = [
-                    ['id' => 1, 'title' => '100 Days of Full-Stack Dev', 'username' => 'Jdoe', 'avatar' => '', 'category_name' => 'Web Dev', 'description' => 'A comprehensive guide to becoming a full-stack developer in 100 days.', 'completed_steps' => 45, 'total_steps' => 100, 'view_count' => 1240, 'clone_count' => 142],
-                    ['id' => 2, 'title' => 'Data Science Basics', 'username' => 'Alice', 'avatar' => '', 'category_name' => 'Data Science', 'description' => 'Master the fundamentals of data science with Python and SQL.', 'completed_steps' => 12, 'total_steps' => 30, 'view_count' => 850, 'clone_count' => 98],
-                    ['id' => 3, 'title' => 'UI/UX for Beginners', 'username' => 'Bob', 'avatar' => '', 'category_name' => 'Design', 'description' => 'Learn the principles of user interface and experience design.', 'completed_steps' => 8, 'total_steps' => 15, 'view_count' => 620, 'clone_count' => 75]
-                ];
-            }
-            foreach ($featured as $j): 
-            ?>
-            <div class="col-md-6 col-lg-4">
-                <div class="st-journey-card">
-                    <div class="card-header-gradient" style="background: var(--st-gradient-1);"></div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="card-meta mb-0 d-flex align-items-center gap-2">
-                                <div class="st-avatar-initial">
-                                    <?= substr(sanitize($j['username']), 0, 1) ?>
+        <div class="row g-4 justify-content-center">
+            <?php if (empty($featured)): ?>
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">No public learning paths available yet. Be the first to create one!</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($featured as $j): ?>
+                <div class="col-md-6 col-lg-4">
+                    <div class="st-journey-card">
+                        <div class="card-header-gradient" style="background: var(--st-gradient-1);"></div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="card-meta mb-0 d-flex align-items-center gap-2">
+                                    <div class="st-avatar-initial" style="width:24px;height:24px;font-size:0.75rem;">
+                                        <?= substr(sanitize($j['username']), 0, 1) ?>
+                                    </div>
+                                    <span class="small"><?= sanitize($j['username']) ?></span>
                                 </div>
-                                <span class="small"><?= sanitize($j['username']) ?></span>
+                                <span class="st-badge st-badge-cloned animate-pulse">
+                                    <i class="bi bi-fire me-1"></i> <?= number_format($j['clone_count']) ?> clones
+                                </span>
                             </div>
-                            <span class="st-badge st-badge-cloned animate-pulse">
-                                <i class="bi bi-fire me-1"></i> Cloned <?= number_format($j['clone_count'] + 100) ?> times
-                            </span>
-                        </div>
-                        <h5 class="card-title"><?= sanitize($j['title']) ?></h5>
-                        <p class="text-muted mb-3" style="font-size:0.85rem;"><?= truncateText(sanitize($j['description'] ?? ''), 100) ?></p>
-                        <div class="st-progress mb-2"><div class="st-progress-bar" style="width:<?= completionPercent($j['completed_steps'], $j['total_steps']) ?>%"></div></div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted"><?= $j['completed_steps'] ?>/<?= $j['total_steps'] ?> steps</small>
-                            <a href="<?= SITE_URL ?>/journey/view.php?id=<?= $j['id'] ?>" class="btn btn-sm btn-outline-info rounded-pill px-3">View Path</a>
+                            <h5 class="card-title"><?= sanitize($j['title']) ?></h5>
+                            <p class="text-muted mb-3" style="font-size:0.85rem;"><?= truncateText(sanitize($j['description'] ?? ''), 100) ?></p>
+                            <div class="st-progress mb-2"><div class="st-progress-bar" style="width:<?= completionPercent($j['completed_steps'], $j['total_steps']) ?>%"></div></div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><?= $j['completed_steps'] ?>/<?= $j['total_steps'] ?> steps</small>
+                                <a href="<?= SITE_URL ?>/journey/view.php?id=<?= $j['id'] ?>" class="btn btn-sm btn-outline-info rounded-pill px-3">View Path</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
         <div class="text-center mt-4">
             <a href="<?= SITE_URL ?>/explore.php" class="btn btn-st-primary px-5"><i class="bi bi-compass me-2"></i>Explore All Journeys</a>
