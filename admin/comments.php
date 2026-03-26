@@ -2,9 +2,8 @@
 /**
  * SomaTrack - Admin: Moderate Comments
  */
-$pageTitle = 'Moderate Comments';
-require_once __DIR__ . '/includes/admin_header.php';
-
+require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/helpers.php';
 $db = getDB();
 $adminId = getCurrentUserId();
 
@@ -31,6 +30,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'restore') {
     }
     redirect(SITE_URL . '/admin/comments.php');
 }
+
+require_once __DIR__ . '/includes/admin_header.php';
 
 $showDeleted = isset($_GET['deleted']);
 

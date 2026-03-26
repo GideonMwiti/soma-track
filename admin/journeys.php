@@ -2,9 +2,8 @@
 /**
  * SomaTrack - Admin: Manage Journeys
  */
-$pageTitle = 'Manage Journeys';
-require_once __DIR__ . '/includes/admin_header.php';
-
+require_once __DIR__ . '/../../includes/session.php';
+require_once __DIR__ . '/../../includes/helpers.php';
 $db = getDB();
 $adminId = getCurrentUserId();
 
@@ -33,6 +32,8 @@ if (isset($_GET['action'])) {
     }
     redirect(SITE_URL . '/admin/journeys.php');
 }
+
+require_once __DIR__ . '/includes/admin_header.php';
 
 $search = trim($_GET['q'] ?? '');
 $where = '1=1';

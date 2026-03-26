@@ -47,10 +47,9 @@ switch ($action) {
 
         $stepNumber = $journey['total_steps'] + 1;
 
-        $stmt = $db->prepare("INSERT INTO steps (journey_id, step_number, title, description, estimated_days) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$journeyId, $stepNumber, $title, $description ?: null, $estimatedDays]);
+        $db->prepare("INSERT INTO steps (journey_id, step_number, title, description, estimated_days) VALUES (?, ?, ?, ?, ?)")->execute([$journeyId, $stepNumber, $title, $description ?: null, $estimatedDays]);
 
-        $db->prepare("UPDATE journeys SET total_steps = total_steps + 1, updated_at = NOW() WHERE id = ?")->execute([$journeyId]);
+        syncJourneyProgress($journeyId);
 
         // Notify cloned journey users about update
         $clones = $db->prepare("SELECT user_id FROM cloned_journeys WHERE original_journey_id = ?");
@@ -128,13 +127,12 @@ switch ($action) {
         $oldStatus = $step['status'];
         $db->prepare("UPDATE steps SET status = ?, updated_at = NOW() WHERE id = ?")->execute([$newStatus, $stepId]);
 
-        // Update journey completed_steps count
+        // Sync journey progress
+        syncJourneyProgress($step['journey_id']);
+
         if ($newStatus === 'completed' && $oldStatus !== 'completed') {
-            $db->prepare("UPDATE journeys SET completed_steps = completed_steps + 1, updated_at = NOW() WHERE id = ?")->execute([$step['journey_id']]);
             updateStreak($userId);
             checkBadges($userId);
-        } elseif ($oldStatus === 'completed' && $newStatus !== 'completed') {
-            $db->prepare("UPDATE journeys SET completed_steps = GREATEST(completed_steps - 1, 0), updated_at = NOW() WHERE id = ?")->execute([$step['journey_id']]);
         }
 
         // Check if all steps completed → mark journey completed
@@ -182,11 +180,8 @@ switch ($action) {
             $db->prepare("UPDATE steps SET step_number = ? WHERE id = ?")->execute([$num++, $rs['id']]);
         }
 
-        // Update journey counts
-        $updateSql = "UPDATE journeys SET total_steps = GREATEST(total_steps - 1, 0)";
-        if ($wasCompleted) $updateSql .= ", completed_steps = GREATEST(completed_steps - 1, 0)";
-        $updateSql .= ", updated_at = NOW() WHERE id = ?";
-        $db->prepare($updateSql)->execute([$step['journey_id']]);
+        // Sync journey progress
+        syncJourneyProgress($step['journey_id']);
 
         setFlash('success', 'Step deleted.');
         redirect(SITE_URL . '/journey/view.php?id=' . $step['journey_id']);

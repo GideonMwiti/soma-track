@@ -2,9 +2,8 @@
 /**
  * SomaTrack - Admin: Manage Users
  */
-$pageTitle = 'Manage Users';
-require_once __DIR__ . '/includes/admin_header.php';
-
+require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/helpers.php';
 $db = getDB();
 $adminId = getCurrentUserId();
 
@@ -32,6 +31,8 @@ if (isset($_GET['action'])) {
     }
     redirect(SITE_URL . '/admin/users.php');
 }
+
+require_once __DIR__ . '/includes/admin_header.php';
 
 // Search
 $search = trim($_GET['q'] ?? '');

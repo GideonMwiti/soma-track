@@ -189,6 +189,32 @@ function updateStreak(int $userId): void {
 }
 
 /**
+ * Sync journey progress (total and completed steps)
+ * @param int $journeyId
+ * @return bool
+ */
+function syncJourneyProgress(int $journeyId): bool {
+    $db = getDB();
+    
+    // Get correct counts from steps table
+    $stmt = $db->prepare("SELECT 
+        COUNT(*) as total, 
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed 
+        FROM steps WHERE journey_id = ?");
+    $stmt->execute([$journeyId]);
+    $counts = $stmt->fetch();
+    
+    if (!$counts) return false;
+
+    $totalCount = (int)$counts['total'];
+    $completedCount = (int)$counts['completed'];
+
+    // Update journey record
+    $stmt = $db->prepare("UPDATE journeys SET total_steps = ?, completed_steps = ?, updated_at = NOW() WHERE id = ?");
+    return $stmt->execute([$totalCount, $completedCount, $journeyId]);
+}
+
+/**
  * Create a notification
  */
 function createNotification(int $userId, string $type, string $title, string $message, ?string $link = null): void {
@@ -246,24 +272,29 @@ function checkBadges(int $userId): void {
                 $earned = ($stats['total_comments_given'] + $stats['total_aha_given']) >= $badge['criteria_value'];
                 break;
             case 'committed':
-                // Check if any journey was completed within estimated time
-                $stmt2 = $db->prepare("SELECT j.id FROM journeys j 
+                // Count journeys completed within estimated time
+                $stmt2 = $db->prepare("SELECT COUNT(*) FROM journeys j 
                     JOIN (SELECT journey_id, SUM(COALESCE(estimated_days, 1)) as total_est FROM steps GROUP BY journey_id) s 
                     ON j.id = s.journey_id 
                     WHERE j.user_id = ? AND j.status = 'completed' 
                     AND DATEDIFF(j.updated_at, j.created_at) <= s.total_est");
                 $stmt2->execute([$userId]);
-                $earned = (bool)$stmt2->fetch();
+                $earnedCount = (int)$stmt2->fetchColumn();
+                $earned = $earnedCount >= $badge['criteria_value'];
                 break;
             case 'diligent':
-                // Check if any completed journey has a log for every step
-                $stmt2 = $db->prepare("SELECT j.id FROM journeys j 
+                // Count completed journeys that have a log for every step
+                $stmt2 = $db->prepare("SELECT COUNT(*) FROM journeys j 
                     WHERE j.user_id = ? AND j.status = 'completed' AND j.total_steps > 0
                     AND (SELECT COUNT(DISTINCT step_id) FROM daily_logs l 
                          JOIN steps s2 ON l.step_id = s2.id 
                          WHERE s2.journey_id = j.id) >= j.total_steps");
                 $stmt2->execute([$userId]);
-                $earned = (bool)$stmt2->fetch();
+                $earnedCount = (int)$stmt2->fetchColumn();
+                $earned = $earnedCount >= $badge['criteria_value'];
+                break;
+            case 'aha_votes_received':
+                $earned = $stats['total_aha_received'] >= $badge['criteria_value'];
                 break;
         }
         if ($earned) {

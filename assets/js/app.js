@@ -267,4 +267,30 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // ---- Badge Sharing Logic ----
+    document.querySelectorAll('.st-share-badge').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const badgeName = this.dataset.name;
+            const badgeDesc = this.dataset.desc;
+            const userName  = this.dataset.user;
+            
+            const shareText = `🌟 Achievement Unlocked! 🌟\n\n${userName} just earned the "${badgeName}" badge on SomaTrack!\n\n"${badgeDesc}"\n\nTrack your own learning journey at: ${window.location.origin}/soma-track`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'SomaTrack Achievement',
+                    text: shareText,
+                    url: window.location.href
+                }).catch(err => console.log('Error sharing:', err));
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showToast('Achievement copied to clipboard!', 'success');
+                });
+            }
+        });
+    });
 });

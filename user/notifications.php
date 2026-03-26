@@ -2,9 +2,8 @@
 /**
  * SomaTrack - Notifications Page
  */
-$pageTitle = 'Notifications';
-require_once __DIR__ . '/../includes/dashboard_header.php';
-
+require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/helpers.php';
 $db = getDB();
 $userId = getCurrentUserId();
 
@@ -14,6 +13,8 @@ if (isset($_GET['mark_read'])) {
     setFlash('success', 'All notifications marked as read.');
     redirect(SITE_URL . '/user/notifications.php');
 }
+
+require_once __DIR__ . '/../includes/dashboard_header.php';
 
 $stmt = $db->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
 $stmt->execute([$userId]);
