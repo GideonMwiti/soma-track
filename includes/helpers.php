@@ -34,9 +34,10 @@ function csrfField(): string {
 }
 
 /**
- * Sanitize user input
+ * Sanitize user input (handles null)
  */
-function sanitize(string $input): string {
+function sanitize(?string $input): string {
+    if ($input === null) return '';
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
