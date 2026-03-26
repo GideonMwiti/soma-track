@@ -61,7 +61,7 @@ $notifCount = getUnreadNotificationCount($currentUser['id']);
                     <div class="st-avatar-initial" style="width:30px;height:30px;font-size:0.8rem;">
                         <?= substr(sanitize($currentUser['username']), 0, 1) ?>
                     </div>
-                    <span class="d-none d-md-inline text-light"><?= sanitize($currentUser['username']) ?></span>
+                    <span class="d-none d-md-inline text-light"><?= sanitize($currentUser['full_name']) ?></span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end st-dropdown">
                     <li><a class="dropdown-item" href="<?= SITE_URL ?>/user/profile.php"><i class="bi bi-person me-2"></i>Profile</a></li>
@@ -86,14 +86,18 @@ $notifCount = getUnreadNotificationCount($currentUser['id']);
             <ul class="st-sidebar-nav">
                 <li class="st-sidebar-heading">Main</li>
                 <li><a href="<?= SITE_URL ?>/user/dashboard.php" class="<?= basename($_SERVER['PHP_SELF']) === 'dashboard.php' ? 'active' : '' ?>"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
-                <li><a href="<?= SITE_URL ?>/user/journeys.php" class="<?= basename($_SERVER['PHP_SELF']) === 'journeys.php' ? 'active' : '' ?>"><i class="bi bi-map"></i><span>My Journeys</span></a></li>
-                <li><a href="<?= SITE_URL ?>/user/cloned.php" class="<?= basename($_SERVER['PHP_SELF']) === 'cloned.php' ? 'active' : '' ?>"><i class="bi bi-copy"></i><span>Cloned Journeys</span></a></li>
+                <?php if ($currentUser['role'] !== 'admin'): ?>
+                    <li><a href="<?= SITE_URL ?>/user/journeys.php" class="<?= basename($_SERVER['PHP_SELF']) === 'journeys.php' ? 'active' : '' ?>"><i class="bi bi-map"></i><span>My Journeys</span></a></li>
+                    <li><a href="<?= SITE_URL ?>/user/cloned.php" class="<?= basename($_SERVER['PHP_SELF']) === 'cloned.php' ? 'active' : '' ?>"><i class="bi bi-copy"></i><span>Cloned Journeys</span></a></li>
+                <?php endif; ?>
                 <li><a href="<?= SITE_URL ?>/explore.php" class="<?= basename($_SERVER['PHP_SELF']) === 'explore.php' ? 'active' : '' ?>"><i class="bi bi-compass"></i><span>Explore</span></a></li>
 
                 <li class="st-sidebar-heading">Activity</li>
-                <li><a href="<?= SITE_URL ?>/user/logs.php" class="<?= basename($_SERVER['PHP_SELF']) === 'logs.php' ? 'active' : '' ?>"><i class="bi bi-journal-text"></i><span>Daily Logs</span></a></li>
-                <li><a href="<?= SITE_URL ?>/user/streaks.php" class="<?= basename($_SERVER['PHP_SELF']) === 'streaks.php' ? 'active' : '' ?>"><i class="bi bi-fire"></i><span>Streaks</span></a></li>
-                <li><a href="<?= SITE_URL ?>/user/badges.php" class="<?= basename($_SERVER['PHP_SELF']) === 'badges.php' ? 'active' : '' ?>"><i class="bi bi-award"></i><span>Badges</span></a></li>
+                <?php if ($currentUser['role'] !== 'admin'): ?>
+                    <li><a href="<?= SITE_URL ?>/user/logs.php" class="<?= basename($_SERVER['PHP_SELF']) === 'logs.php' ? 'active' : '' ?>"><i class="bi bi-journal-text"></i><span>Daily Logs</span></a></li>
+                    <li><a href="<?= SITE_URL ?>/user/streaks.php" class="<?= basename($_SERVER['PHP_SELF']) === 'streaks.php' ? 'active' : '' ?>"><i class="bi bi-fire"></i><span>Streaks</span></a></li>
+                    <li><a href="<?= SITE_URL ?>/user/badges.php" class="<?= basename($_SERVER['PHP_SELF']) === 'badges.php' ? 'active' : '' ?>"><i class="bi bi-award"></i><span>Badges</span></a></li>
+                <?php endif; ?>
 
                 <li class="st-sidebar-heading">Account</li>
                 <li><a href="<?= SITE_URL ?>/user/profile.php" class="<?= basename($_SERVER['PHP_SELF']) === 'profile.php' ? 'active' : '' ?>"><i class="bi bi-person"></i><span>Profile</span></a></li>
@@ -104,16 +108,18 @@ $notifCount = getUnreadNotificationCount($currentUser['id']);
             </ul>
 
             <!-- Streak Widget -->
-            <?php $userStats = getUserStats($currentUser['id']); ?>
-            <div class="st-streak-widget">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-fire text-warning fs-4 me-2"></i>
-                    <div>
-                        <div class="fw-semibold"><?= $currentUser['username'] ?></div>
-                        <small class="text-muted"><?= $userStats['current_streak'] ?>-day streak</small>
+            <?php if ($currentUser['role'] !== 'admin'): ?>
+                <?php $userStats = getUserStats($currentUser['id']); ?>
+                <div class="st-streak-widget">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-fire text-warning fs-4 me-2"></i>
+                        <div>
+                            <div class="fw-semibold"><?= sanitize($currentUser['full_name']) ?></div>
+                            <small class="text-muted"><?= $userStats['current_streak'] ?>-day streak</small>
+                        </div>
                     </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
     </nav>
 

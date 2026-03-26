@@ -16,6 +16,28 @@ $badges = $stmt->fetchAll();
 
 $earnedCount = 0;
 foreach ($badges as $b) { if ($b['earned_at']) $earnedCount++; }
+
+// Advanced progress metrics
+$maxJourneyProgress = 0;
+$maxDiligent = 0;
+$topJourneyStepsRemaining = 0;
+
+$pStmt = $db->prepare("SELECT id, total_steps, completed_steps FROM journeys WHERE user_id = ? AND total_steps > 0");
+$pStmt->execute([$userId]);
+while ($j = $pStmt->fetch()) {
+    $prog = (float)$j['completed_steps'] / $j['total_steps'];
+    if ($prog > $maxJourneyProgress) {
+        $maxJourneyProgress = $prog;
+        $topJourneyStepsRemaining = $j['total_steps'] - $j['completed_steps'];
+    }
+    
+    // Diligent logic
+    $dStmt = $db->prepare("SELECT COUNT(DISTINCT step_id) FROM daily_logs l JOIN steps s ON l.step_id = s.id WHERE s.journey_id = ?");
+    $dStmt->execute([$j['id']]);
+    $logCount = (int)$dStmt->fetchColumn();
+    $dil = (float)$logCount / $j['total_steps'];
+    if ($dil > $maxDiligent) $maxDiligent = $dil;
+}
 ?>
 
 <div class="st-page-header">
@@ -29,16 +51,49 @@ foreach ($badges as $b) { if ($b['earned_at']) $earnedCount++; }
     <?php foreach ($badges as $badge):
         $earned = !empty($badge['earned_at']);
         $progress = 0;
+        $tooltip = "";
+        $val = 0;
+        $target = (float)$badge['criteria_value'];
+
         switch ($badge['criteria_type']) {
-            case 'streak': $progress = min(100, ($stats['longest_streak'] / $badge['criteria_value']) * 100); break;
-            case 'journeys_completed': $progress = min(100, ($stats['completed_journeys'] / $badge['criteria_value']) * 100); break;
-            case 'steps_completed': $progress = min(100, ($stats['completed_steps'] / $badge['criteria_value']) * 100); break;
-            case 'clones': $progress = min(100, ($stats['total_clones'] / $badge['criteria_value']) * 100); break;
-            case 'aha_votes': $progress = min(100, ($stats['total_aha_received'] / $badge['criteria_value']) * 100); break;
+            case 'streak': 
+                $val = (float)$stats['longest_streak']; 
+                $tooltip = ($target - $val) . " more days to unlock";
+                break;
+            case 'journeys_completed': 
+                $completed = (float)$stats['completed_journeys'];
+                if ($completed == 0 && $maxJourneyProgress > 0) {
+                    $val = $maxJourneyProgress * 100;
+                    $target = 100;
+                    $tooltip = $topJourneyStepsRemaining . " steps to unlock";
+                } else {
+                    $val = $completed;
+                    $tooltip = ($target - $val) . " more journeys needed";
+                }
+                break;
+            case 'steps_completed': 
+                $val = (float)$stats['completed_steps']; 
+                $tooltip = ($target - $val) . " steps to go";
+                break;
+            case 'clones': 
+                $val = (float)$stats['total_clones']; 
+                $tooltip = ($target - $val) . " more clones needed";
+                break;
+            case 'aha_votes': 
+                $val = (float)$stats['total_aha_received']; 
+                $tooltip = ($target - $val) . " more AHA!s needed";
+                break;
+            case 'diligent':
+                $val = $maxDiligent * 100;
+                $target = 100;
+                $tooltip = "Add logs to all steps to unlock!";
+                break;
         }
+        $progress = $target > 0 ? min(100, ($val / $target) * 100) : 0;
+        if (!$tooltip) $tooltip = ($target > $val ? round($target - $val) . " more to go" : "Requirement met!");
     ?>
-    <div class="col-md-4 col-lg-3">
-        <div class="st-card text-center <?= $earned ? '' : 'opacity-50' ?>" style="<?= $earned ? 'border-color:var(--st-warning);' : '' ?>">
+    <div class="col-md-4 col-lg-3" title="<?= $tooltip ?>">
+        <div class="st-card text-center <?= $earned ? '' : 'opacity-50' ?>" style="<?= $earned ? 'border-color:var(--st-warning);' : '' ?>; cursor: help;">
             <div style="width:64px;height:64px;border-radius:16px;background:<?= $earned ? 'rgba(253,203,110,0.2)' : 'var(--st-dark-surface)' ?>;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
                 <i class="bi <?= $badge['icon'] ?> fs-3" style="color:<?= $earned ? 'var(--st-warning)' : 'var(--st-text-muted)' ?>;"></i>
             </div>

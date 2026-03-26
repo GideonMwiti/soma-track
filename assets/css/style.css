@@ -819,3 +819,23 @@ a:hover { color: var(--st-primary); }
     padding: 60px 0;
     border-radius: 0 0 var(--st-radius-lg) var(--st-radius-lg);
 }
+
+/* ---- Progress Bars ---- */
+.st-progress {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+.st-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--st-primary), var(--st-secondary));
+    border-radius: 10px;
+    transition: width 1s ease-in-out;
+}
+.st-progress-sm { height: 4px; }
+.st-progress-lg { height: 10px; }
+.st-progress-bar.bg-success { background: var(--st-success) !important; }
+.st-progress-bar.bg-warning { background: var(--st-warning) !important; }

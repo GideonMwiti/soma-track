@@ -78,7 +78,7 @@ if ($categories === null) {
 // Get stats for landing page (Cached for 1 hour)
 $stats = getCache('landing_stats');
 if ($stats === null) {
-    $totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    $totalUsers = $db->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
     $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='public'")->fetchColumn();
     $stats = [
         'totalUsers' => $totalUsers,
@@ -264,10 +264,18 @@ if ($stats === null) {
                             </div>
                             <h5 class="card-title"><?= sanitize($j['title']) ?></h5>
                             <p class="text-muted mb-3" style="font-size:0.85rem;"><?= truncateText(sanitize($j['description'] ?? ''), 100) ?></p>
-                            <div class="st-progress mb-2"><div class="st-progress-bar" style="width:<?= completionPercent($j['completed_steps'], $j['total_steps']) ?>%"></div></div>
+                            <?php if (isLoggedIn() && getCurrentUserId() == $j['user_id']): ?>
+                                <div class="st-progress mb-2"><div class="st-progress-bar" style="width:<?= completionPercent($j['completed_steps'], $j['total_steps']) ?>%"></div></div>
+                            <?php endif; ?>
                             <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted"><?= $j['completed_steps'] ?>/<?= $j['total_steps'] ?> steps</small>
-                                <a href="<?= SITE_URL ?>/journey/view.php?id=<?= $j['id'] ?>" class="btn btn-sm btn-outline-info rounded-pill px-3">View Path</a>
+                                <small class="text-muted">
+                                    <?php if (isLoggedIn() && getCurrentUserId() == $j['user_id']): ?>
+                                        <?= $j['completed_steps'] ?>/<?= $j['total_steps'] ?> steps
+                                    <?php else: ?>
+                                        <?= $j['total_steps'] ?> steps
+                                    <?php endif; ?>
+                                </small>
+                                <a href="<?= SITE_URL ?>/journey/view.php?id=<?= $j['id'] ?>" class="btn btn-sm btn-outline-info rounded-pill px-3"><?= getJourneyActionText($j['user_id'], $j['completed_steps'], isLoggedIn()) ?></a>
                             </div>
                         </div>
                     </div>

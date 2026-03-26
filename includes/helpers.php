@@ -414,3 +414,12 @@ function checkRateLimit(string $endpoint, int $limit = 60, int $window = 3600): 
         return true; // Allow on DB failure
     }
 }
+
+/**
+ * Get action-oriented button text for a journey card
+ */
+function getJourneyActionText($ownerId, $completedSteps, $isLoggedIn) {
+    if (!$isLoggedIn) return "Explore Path";
+    if (isLoggedIn() && getCurrentUserId() == $ownerId || $completedSteps > 0) return "Resume Journey";
+    return "Start Learning";
+}
