@@ -71,10 +71,10 @@ $pageTitle = $achievement['name'] . " - SomaTrack Achievement";
     <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Cinzel:wght@600&family=Inter:wght@400;600;700&display=swap');
 
         body {
-            background-color: #05070a;
+            background-color: #020408;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -89,149 +89,146 @@ $pageTitle = $achievement['name'] . " - SomaTrack Achievement";
             max-width: 650px;
             width: 100%;
         }
+        
+        /* SomaTrack Neon-Glass Achievement Card */
         .st-share-card {
             aspect-ratio: 1 / 1;
             width: 100%;
             background: #0d1117;
             background-image: 
-                radial-gradient(circle at 50% 50%, #1a2333 0%, #0d1117 100%),
-                url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            border: 4px solid #6610f2;
+                radial-gradient(circle at 0% 0%, rgba(102, 16, 242, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(0, 229, 255, 0.15) 0%, transparent 50%);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 40px;
-            padding: 60px;
+            padding: 50px;
             text-align: center;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(102, 16, 242, 0.3), inset 0 0 100px rgba(0,0,0,0.8);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
         }
-        
-        .st-corner-glow {
+
+        /* Neon Border Glow */
+        .st-share-card::after {
+            content: '';
             position: absolute;
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, rgba(102, 16, 242, 0.2) 0%, transparent 70%);
-            z-index: 1;
+            inset: 0;
+            padding: 2px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #6610f2, #00e5ff);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
         }
-        .top-left { top: -50px; left: -50px; }
-        .top-right { top: -50px; right: -50px; }
-        .bottom-left { bottom: -50px; left: -50px; }
-        .bottom-right { bottom: -50px; right: -50px; }
 
-        .st-share-content {
-            position: relative;
-            z-index: 2;
+        /* Branding Top */
+        .st-card-header {
             width: 100%;
-            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            gap: 10px;
         }
-
-        /* Official SomaTrack Logo Style */
-        .st-official-logo {
+        .st-brand-mini {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
+            gap: 10px;
         }
-        .st-logo-box {
-            width: 65px;
-            height: 65px;
+        .st-brand-logo-box {
+            width: 40px;
+            height: 40px;
             background: #6610f2;
-            border-radius: 20px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 20px rgba(102, 16, 242, 0.4);
         }
-        .st-logo-box i {
-            font-size: 35px;
-            color: #fff;
-        }
-        .st-logo-text-wrapper {
-            text-align: left;
-        }
-        .st-logo-main-text {
-            font-size: 38px;
+        .st-brand-logo-box i { font-size: 20px; }
+        .st-brand-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
             font-weight: 900;
-            color: #fff;
-            line-height: 1;
-            margin-bottom: 4px;
+            letter-spacing: -0.5px;
         }
-        .st-logo-tagline {
-            font-size: 14px;
-            font-weight: 800;
-            color: #00e5ff;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .st-cert-header {
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            font-size: 16px;
-            color: #fff;
-            opacity: 0.8;
-            font-weight: 400;
-        }
-
-        .st-badge-container {
-            position: relative;
-            margin: 10px 0;
-        }
-        .st-badge-shield {
-            width: 200px;
-            height: 200px;
-            filter: drop-shadow(0 0 20px rgba(102, 16, 242, 0.4));
-        }
-        
-        .st-badge-name {
-            font-family: 'Cinzel', serif;
-            font-size: 28px;
-            color: #ffcc33;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 2px 10px rgba(0,0,0,1);
-            margin-top: -10px;
-        }
-
-        .st-learner-name {
-            font-size: 52px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #fff;
-            margin: 10px 0;
-            text-shadow: 0 0 30px rgba(255,255,255,0.2);
-        }
-
-        .st-detail-panel {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 15px 30px;
-            width: 100%;
-            max-width: 500px;
-        }
-        .st-detail-label {
-            font-size: 10px;
+        .st-brand-tagline {
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 2px;
             color: #00e5ff;
-            margin-bottom: 5px;
             font-weight: 700;
         }
-        .st-detail-value {
-            font-size: 15px;
-            font-weight: 600;
-            color: #fff;
-            text-transform: uppercase;
+
+        /* Achievement Body */
+        .st-card-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
         }
+        
+        .st-badge-crown {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .st-glow-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(102, 16, 242, 0.4) 0%, transparent 70%);
+            animation: pulse 4s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+        }
+
+        .st-badge-icon-lg {
+            font-size: 100px;
+            color: #ffcc33;
+            filter: drop-shadow(0 0 20px rgba(255, 204, 51, 0.4));
+            position: relative;
+            z-index: 2;
+        }
+
+        .st-achievement-title {
+            font-family: 'Cinzel', serif;
+            font-size: 32px;
+            color: #ffcc33;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .st-recipient-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            text-transform: uppercase;
+            line-height: 1;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Modern Detail Strip */
+        .st-detail-strip {
+            margin-top: 30px;
+            display: flex;
+            gap: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+        .st-detail-item { text-align: left; }
+        .st-label { font-size: 10px; text-transform: uppercase; color: #00e5ff; letter-spacing: 1.5px; margin-bottom: 4px; }
+        .st-value { font-size: 15px; font-weight: 700; color: #fff; }
 
         .st-actions-bottom {
             margin-top: 30px;
@@ -243,78 +240,60 @@ $pageTitle = $achievement['name'] . " - SomaTrack Achievement";
         @media print {
             .st-actions-bottom, .st-back-link { display: none; }
             body { background: #000; padding: 0; }
-            .st-share-card { border: none; box-shadow: none; border-radius: 0; }
+            .achievement-card { border: none; box-shadow: none; border-radius: 0; }
         }
     </style>
 </head>
 <body>
 
     <div class="st-share-container">
-        <div class="st-share-card" id="achievementCard">
-            <!-- Decorative Glows -->
-            <div class="st-corner-glow top-left"></div>
-            <div class="st-corner-glow top-right"></div>
-            <div class="st-corner-glow bottom-left"></div>
-            <div class="st-corner-glow bottom-right"></div>
-
-            <div class="st-share-content">
-                <!-- Official Branding -->
-                <div class="st-official-logo">
-                    <div class="st-logo-box">
+        <div class="achievement-card" id="achievementCard">
+            <!-- Header Branding -->
+            <div class="st-card-header">
+                <div class="st-brand-mini">
+                    <div class="st-brand-logo-box">
                         <i class="bi bi-mortarboard-fill"></i>
                     </div>
-                    <div class="st-logo-text-wrapper">
-                        <div class="st-logo-main-text">Soma Track</div>
-                        <div class="st-logo-tagline">Built by Learners for Learners</div>
-                    </div>
+                    <div class="st-brand-name">Soma Track</div>
                 </div>
+                <div class="st-brand-tagline">Built by Learners for Learners</div>
+            </div>
 
-                <div class="st-cert-header">Certificate of Achievement</div>
+            <!-- Main Content -->
+            <div class="st-card-main">
+                <div class="st-badge-crown">
+                    <div class="st-glow-ring"></div>
+                    <i class="bi <?= $achievement['icon'] ?> st-badge-icon-lg"></i>
+                </div>
                 
-                <!-- Badge Visual -->
-                <div class="st-badge-container">
-                    <svg class="st-badge-shield" viewBox="0 0 100 100">
-                        <defs>
-                            <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#6610f2;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:1" />
-                            </linearGradient>
-                        </defs>
-                        <path d="M50 5 L85 20 V50 C85 70 50 95 50 95 C50 95 15 70 15 50 V20 L50 5Z" fill="none" stroke="url(#shieldGrad)" stroke-width="2" />
-                        <path d="M50 10 L80 23 V50 C80 65 50 85 50 85 C50 85 20 65 20 50 V23 L50 10Z" fill="rgba(102, 16, 242,0.1)" />
-                    </svg>
-                    <i class="bi <?= $achievement['icon'] ?>" style="position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; color: #ffcc33; filter: drop-shadow(0 0 15px #ffcc33);"></i>
-                </div>
-
-                <div class="st-badge-name"><?= sanitize($achievement['name']) ?></div>
-
-                <div class="st-learner-name"><?= sanitize($achievement['full_name']) ?></div>
-
-                <div class="st-detail-panel">
-                    <div class="row">
-                        <div class="col-6" style="border-right: 1px solid rgba(255,255,255,0.1);">
-                            <div class="st-detail-label">Achievement</div>
-                            <div class="st-detail-value"><?= sanitize($achievementLabel) ?></div>
-                        </div>
-                        <div class="col-6">
-                            <div class="st-detail-label">Journey</div>
-                            <div class="st-detail-value text-truncate"><?= $journeyTitle ? sanitize($journeyTitle) : 'N/A' ?></div>
-                        </div>
+                <div style="font-size: 14px; opacity: 0.7; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px;">Presented To</div>
+                <h1 class="st-recipient-name"><?= sanitize($achievement['full_name']) ?></h1>
+                
+                <div style="margin-top: 15px;">
+                    <div style="font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 5px;">
+                        for <span id="badgeTitleText" style="color: #ffcc33; font-family: 'Cinzel', serif;"><?= sanitize($achievement['name']) ?></span>
                     </div>
+                    <?php if ($journeyTitle): ?>
+                    <div style="font-size: 16px; color: #00e5ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                        in <span id="journeyTitleText" style="color: #fff;"><?= sanitize($journeyTitle) ?></span>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
-                <div class="mt-3" style="font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:2px;">
-                    Verified by SomaTrack Platform
+                <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); width: 200px; padding-top: 15px;">
+                    <span style="font-size: 11px; color: #00e5ff; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">Verified Achievement</span>
                 </div>
+            </div>
+
+            <!-- Footer Small -->
+            <div style="margin-top: 30px; font-size: 10px; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; text-align: center; width: 100%;">
+                © <?= date('Y') ?> SomaTrack Global Learning Community
             </div>
         </div>
 
         <div class="st-actions-bottom no-print">
             <button class="btn btn-warning py-3 rounded-pill flex-fill fw-bold shadow" id="shareBtn">
                 <i class="bi bi-share me-2"></i>Share Achievement
-            </button>
-            <button class="btn btn-outline-info py-3 rounded-pill flex-fill fw-bold" onclick="window.print()">
-                <i class="bi bi-file-earmark-pdf me-2"></i>Save as PDF
             </button>
         </div>
         <div class="text-center mt-3 st-back-link">
@@ -341,6 +320,7 @@ $pageTitle = $achievement['name'] . " - SomaTrack Achievement";
             }
         });
     </script>
+    <script src="<?= SITE_URL ?>/assets/js/app.js"></script>
 
 </body>
 </html>

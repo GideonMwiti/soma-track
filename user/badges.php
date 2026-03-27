@@ -151,11 +151,11 @@ foreach ($categories as $catName => $types):
                         <div class="d-flex align-items-center justify-content-center gap-2">
                             <span class="st-badge st-badge-success"><i class="bi bi-check me-1"></i>Earned <?= formatDate($badge['earned_at'], 'M Y') ?></span>
                             <a href="<?= SITE_URL ?>/user/share_badge.php?b=<?= $badge['id'] ?>&u=<?= $userId ?>" 
-                       class="btn btn-sm btn-outline-warning" 
-                       target="_blank"
-                       title="Share Achievement">
-                        <i class="bi bi-share"></i>
-                    </a>
+                               class="btn btn-sm btn-outline-warning" 
+                               target="_blank"
+                               title="Share Achievement">
+                                <i class="bi bi-share"></i>
+                            </a>
                         </div>
                     <?php else: ?>
                         <div class="st-progress mt-2 mb-1"><div class="st-progress-bar" style="width:<?= $progress ?>%"></div></div>

@@ -293,4 +293,106 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // ---- Canvas Download Logic for Visual Badge ----
+    const downloadImgBtn = document.getElementById('downloadImgBtn');
+    if (downloadImgBtn) {
+        downloadImgBtn.addEventListener('click', function() {
+            const card = document.getElementById('achievementCard');
+            if (!card) return;
+
+            // Simple native canvas drawing as a fallback to heavy html2canvas
+            // This grabs standard layout elements and draws them
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+
+            // Draw dark background with gradient fallback
+            ctx.fillStyle = '#14142b';
+            ctx.fillRect(0, 0, 1080, 1080);
+            
+            // Draw gradient circles mapping to CSS
+            const grad1 = ctx.createRadialGradient(0, 0, 0, 0, 0, 500);
+            grad1.addColorStop(0, 'rgba(102, 16, 242, 0.15)');
+            grad1.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad1;
+            ctx.fillRect(0, 0, 1080, 1080);
+
+            const grad2 = ctx.createRadialGradient(1080, 1080, 0, 1080, 1080, 500);
+            grad2.addColorStop(0, 'rgba(13, 202, 240, 0.15)');
+            grad2.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad2;
+            ctx.fillRect(0, 0, 1080, 1080);
+
+            // Fetch Data
+            const recipientName = card.querySelector('.st-recipient-name')?.innerText || 'Learner';
+            const presentedToText = "PRESENTED TO";
+            const badgeTitleNode = document.getElementById('badgeTitleText');
+            let badgeTitle = badgeTitleNode ? badgeTitleNode.innerText.trim() : 'Achievement';
+            const journeyTitleNode = document.getElementById('journeyTitleText');
+            let journeyTitle = journeyTitleNode ? journeyTitleNode.innerText.trim() : null;
+
+            // Draw Logo text
+            ctx.fillStyle = '#6610f2';
+            ctx.roundRect(100, 100, 60, 60, 15);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 36px Montserrat, sans-serif';
+            ctx.fillText('Soma Track', 180, 140);
+            ctx.fillStyle = '#0dcaf0';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('BUILT BY LEARNERS FOR LEARNERS', 180, 165);
+
+            // Draw Center glow and icon text
+            ctx.fillStyle = 'rgba(102, 16, 242, 0.4)';
+            ctx.beginPath();
+            ctx.arc(540, 400, 150, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Native canvas doesn't map web-fonts/icons easily without load, use text
+            ctx.font = '100px sans-serif';
+            ctx.fillStyle = '#ffcc33';
+            ctx.textAlign = 'center';
+            ctx.fillText('★', 540, 430);
+
+            // Draw Recipient Name
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.letterSpacing = '4px';
+            ctx.fillText(presentedToText, 540, 600);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 70px Montserrat, sans-serif';
+            ctx.letterSpacing = '0px';
+            ctx.fillText(recipientName.toUpperCase(), 540, 680);
+
+            ctx.font = '600 32px Inter, sans-serif';
+            ctx.fillText('for ' + badgeTitle, 540, 750);
+            
+            if (journeyTitle) {
+                ctx.fillStyle = '#0dcaf0';
+                ctx.font = 'bold 20px Inter, sans-serif';
+                ctx.fillText('IN ' + journeyTitle.toUpperCase(), 540, 800);
+            }
+
+            // Verified
+            ctx.beginPath();
+            ctx.moveTo(340, 850);
+            ctx.lineTo(740, 850);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.stroke();
+
+            ctx.fillStyle = '#0dcaf0';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.letterSpacing = '2px';
+            ctx.fillText('VERIFIED ACHIEVEMENT', 540, 900);
+
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `SomaTrack_Badge_${recipientName}.png`;
+            link.href = dataUrl;
+            link.click();
+        });
+    }
 });
