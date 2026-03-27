@@ -148,7 +148,7 @@ $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='pub
     </div>
 </section>
 
-            <div class="col-lg-12">
+            <div class="col-lg-12" id="philosophy">
                 <div class="st-brand-section">
                     <div class="row g-4">
                         <div class="col-md-4">
