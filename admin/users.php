@@ -71,7 +71,7 @@ $allUsers = $users->fetchAll();
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <div class="st-avatar-initial" style="width:36px;height:36px;font-size:0.85rem;background:var(--st-primary-light);color:#fff;display:flex;align-items:center;justify-content:center;border-radius:50%;">
-                                <?= substr(sanitize($u['username']), 0, 1) ?>
+                                <?= substr(sanitize(!empty($u['full_name']) ? $u['full_name'] : $u['username']), 0, 1) ?>
                             </div>
                             <div>
                                 <div class="fw-semibold"><?= sanitize($u['full_name']) ?></div>

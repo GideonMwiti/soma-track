@@ -15,6 +15,19 @@ $sortBy     = $_GET['sort'] ?? 'popular';
 $where = "j.visibility = 'public'";
 $params = [];
 
+// Filter out user's own journeys and journeys they have already cloned
+if (isLoggedIn()) {
+    $currentUserId = getCurrentUserId();
+    $where .= " AND j.user_id != ?";
+    $params[] = $currentUserId;
+    
+    $where .= " AND NOT EXISTS (
+        SELECT 1 FROM cloned_journeys cj 
+        WHERE cj.original_journey_id = j.id AND cj.user_id = ?
+    )";
+    $params[] = $currentUserId;
+}
+
 if (!empty($search)) {
     $where .= " AND (j.title LIKE ? OR j.description LIKE ?)";
     $params[] = "%$search%";
@@ -100,7 +113,7 @@ $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
                 <div class="card-body">
                     <div class="card-meta">
                         <div class="st-avatar-initial" style="width:24px;height:24px;font-size:0.7rem;">
-                            <?= substr(sanitize($j['username']), 0, 1) ?>
+                            <?= substr(sanitize(!empty($j['full_name']) ? $j['full_name'] : $j['username']), 0, 1) ?>
                         </div>
                         <span><?= sanitize($j['username']) ?></span>
                         <?php if ($j['category_name']): ?>
@@ -111,19 +124,14 @@ $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
                         <a href="<?= SITE_URL ?>/journey/view.php?id=<?= $j['id'] ?>" class="text-decoration-none text-light"><?= sanitize($j['title']) ?></a>
                     </h5>
                     <p class="text-muted mb-3" style="font-size:0.85rem;"><?= truncateText(sanitize($j['description'] ?? ''), 100) ?></p>
-                    <?php if (isLoggedIn() && getCurrentUserId() == $j['user_id']): ?>
-                        <div class="st-progress mb-2"><div class="st-progress-bar" style="width:<?= $j['completion_pct'] ?>%"></div></div>
-                        <small class="text-muted"><?= $j['completed_steps'] ?>/<?= $j['total_steps'] ?> steps · <?= $j['completion_pct'] ?>%</small>
-                    <?php else: ?>
-                        <small class="text-muted"><i class="bi bi-layers me-1"></i><?= $j['total_steps'] ?> steps to master</small>
-                    <?php endif; ?>
+                    <small class="text-muted"><i class="bi bi-layers me-1"></i><?= $j['total_steps'] ?> steps to master</small>
                 </div>
                 <div class="card-footer">
                     <div class="d-flex gap-3">
                         <small class="text-muted"><i class="bi bi-eye me-1"></i><?= number_format($j['view_count']) ?></small>
                         <small class="text-muted"><i class="bi bi-copy me-1"></i><?= $j['clone_count'] ?></small>
                     </div>
-                    <a href="<?= SITE_URL ?>/journey/view.php?id=<?= $j['id'] ?>" class="btn btn-sm btn-st-secondary"><?= getJourneyActionText($j['user_id'], $j['completed_steps'], isLoggedIn()) ?></a>
+                    <a href="<?= SITE_URL ?>/journey/view.php?id=<?= $j['id'] ?>" class="btn btn-sm btn-st-secondary">Explore Path</a>
                 </div>
             </div>
         </div>

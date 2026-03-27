@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get featured journeys for display (Cached for 1 hour)
+// Get featured journeys for display (Cached for 5 minutes)
 $db = getDB();
 $featured = getCache('featured_journeys');
 
@@ -65,7 +65,7 @@ if ($featured === null) {
         $featured = $popStmt->fetchAll();
     }
     
-    setCache('featured_journeys', $featured, 3600);
+    setCache('featured_journeys', $featured, 300); // 5 minutes (300 seconds)
 }
 
 $categories = getCache('categories_list');
@@ -75,7 +75,7 @@ if ($categories === null) {
     setCache('categories_list', $categories, 86400); // 24 hours
 }
 
-// Get stats for landing page (Cached for 1 hour)
+// Get stats for landing page (Cached for 15 minutes)
 $stats = getCache('landing_stats');
 if ($stats === null) {
     $totalUsers = $db->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
@@ -84,7 +84,7 @@ if ($stats === null) {
         'totalUsers' => $totalUsers,
         'totalJourneys' => $totalJourneys
     ];
-    setCache('landing_stats', $stats, 3600);
+    setCache('landing_stats', $stats, 900); // 15 mins (900 seconds)
 } else {
     $totalUsers = $stats['totalUsers'];
     $totalJourneys = $stats['totalJourneys'];
@@ -254,7 +254,7 @@ if ($stats === null) {
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div class="card-meta mb-0 d-flex align-items-center gap-2">
                                     <div class="st-avatar-initial" style="width:24px;height:24px;font-size:0.75rem;">
-                                        <?= substr(sanitize($j['username']), 0, 1) ?>
+                                        <?= substr(sanitize(!empty($j['full_name']) ? $j['full_name'] : $j['username']), 0, 1) ?>
                                     </div>
                                     <span class="small"><?= sanitize($j['username']) ?></span>
                                 </div>

@@ -130,7 +130,7 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
-                        <?= substr(sanitize($journey['username']), 0, 1) ?>
+                        <?= substr(sanitize(!empty($journey['full_name']) ? $journey['full_name'] : $journey['username']), 0, 1) ?>
                     </div>
                     <a href="<?= SITE_URL ?>/user/profile.php?id=<?= $journey['user_id'] ?>" class="text-decoration-none"><?= sanitize($journey['username']) ?></a>
                 </div>
@@ -148,7 +148,7 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                     <?= csrfField() ?>
                     <input type="hidden" name="action" value="clone">
                     <input type="hidden" name="journey_id" value="<?= $journeyId ?>">
-                    <button type="submit" class="btn btn-st-primary btn-sm"><i class="bi bi-copy me-1"></i>Clone Journey</button>
+                    <button type="submit" class="btn btn-st-primary btn-sm"><i class="bi bi-rocket-takeoff me-1"></i>Clone to Start Learning</button>
                 </form>
             <?php elseif ($userHasCloned): ?>
                 <span class="st-badge st-badge-info"><i class="bi bi-check me-1"></i>Cloned</span>

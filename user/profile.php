@@ -71,7 +71,7 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
     <div class="col-lg-4">
         <div class="st-card text-center">
             <div class="st-avatar-initial mb-3 mx-auto" style="width:100px;height:100px;font-size:2.5rem;">
-                <?= substr(sanitize($profile['username']), 0, 1) ?>
+                <?= substr(sanitize(!empty($profile['full_name']) ? $profile['full_name'] : $profile['username']), 0, 1) ?>
             </div>
             <h4 class="fw-bold mb-1"><?= sanitize($profile['full_name']) ?></h4>
             <p class="text-muted mb-2">@<?= sanitize($profile['username']) ?></p>

@@ -80,11 +80,11 @@ $adminLogs = $db->query("SELECT al.*, u.username FROM admin_logs al JOIN users u
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
-                                        <?= substr(sanitize($u['username']), 0, 1) ?>
+                                        <?= substr(sanitize(!empty($u['full_name']) ? $u['full_name'] : $u['username']), 0, 1) ?>
                                     </div>
                                     <div>
-                                        <div class="fw-semibold"><?= sanitize($u['username']) ?></div>
-                                        <small class="text-muted"><?= sanitize($u['email']) ?></small>
+                                          <div class="fw-semibold"><?= sanitize($u['full_name']) ?></div>
+                                          <small class="text-muted">@<?= sanitize($u['username']) ?> &bull; <?= sanitize($u['email']) ?></small>
                                     </div>
                                 </div>
                             </td>

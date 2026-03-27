@@ -66,7 +66,7 @@ require_once __DIR__ . '/includes/admin_header.php';
                                 <td class="fw-bold">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
-                                            <?= substr(sanitize($log['username']), 0, 1) ?>
+                                            <?= substr(sanitize(!empty($log['full_name']) ? $log['full_name'] : $log['username']), 0, 1) ?>
                                         </div>
                                         <?= sanitize($log['username']) ?>
                                     </div>
@@ -106,7 +106,7 @@ require_once __DIR__ . '/includes/admin_header.php';
                                 <td class="fw-bold">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
-                                            <?= substr(sanitize($comm['username']), 0, 1) ?>
+                                            <?= substr(sanitize(!empty($comm['full_name']) ? $comm['full_name'] : $comm['username']), 0, 1) ?>
                                         </div>
                                         <?= sanitize($comm['username']) ?>
                                     </div>

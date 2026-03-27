@@ -71,7 +71,7 @@ $comments = $stmt->fetchAll();
         <?php foreach ($comments as $c): ?>
         <div class="st-comment">
             <div class="st-avatar-initial" style="width:36px;height:36px;font-size:0.9rem;">
-                <?= substr(sanitize($c['username']), 0, 1) ?>
+                <?= substr(sanitize(!empty($c['full_name']) ? $c['full_name'] : $c['username']), 0, 1) ?>
             </div>
             <div class="flex-grow-1">
                 <div class="st-comment-meta d-flex justify-content-between">
