@@ -213,7 +213,7 @@ $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='pub
 </section>
 
 <!-- Trending Journeys Section -->
-<section class="py-5">
+<section id="trending" class="py-5">
     <div class="container py-5">
         <div class="text-center mb-5">
             <h2 class="fw-bold mb-3">Trending <span style="color: var(--st-secondary);">Learning Paths</span></h2>
