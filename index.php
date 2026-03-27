@@ -40,55 +40,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get featured journeys for display (Cached for 5 minutes)
+// Get featured journeys for display (Direct query, cache disabled for instant updates)
 $db = getDB();
-$featured = getCache('featured_journeys');
 
-if ($featured === null) {
-    // 1. Try to get featured journeys
-    $featuredStmt = $db->query("SELECT j.*, u.username, u.avatar, c.name AS category_name 
-        FROM journeys j 
-        JOIN users u ON j.user_id = u.id 
-        LEFT JOIN categories c ON j.category_id = c.id 
-        WHERE j.visibility = 'public' AND j.is_featured = 1 
-        ORDER BY j.view_count DESC LIMIT 6");
-    $featured = $featuredStmt->fetchAll();
+// 1. Try to get featured journeys
+$featuredStmt = $db->query("SELECT j.*, u.username, u.avatar, c.name AS category_name
+    FROM journeys j
+    JOIN users u ON j.user_id = u.id
+    LEFT JOIN categories c ON j.category_id = c.id 
+    WHERE j.visibility = 'public' AND j.is_featured = 1
+    ORDER BY j.view_count DESC LIMIT 6");
+$featured = $featuredStmt->fetchAll();
 
-    // 2. Fallback: If no featured, get top viewed public journeys
-    if (empty($featured)) {
-        $popStmt = $db->query("SELECT j.*, u.username, u.avatar, c.name AS category_name 
-            FROM journeys j 
-            JOIN users u ON j.user_id = u.id 
-            LEFT JOIN categories c ON j.category_id = c.id 
-            WHERE j.visibility = 'public' 
-            ORDER BY j.view_count DESC LIMIT 3");
-        $featured = $popStmt->fetchAll();
-    }
-    
-    setCache('featured_journeys', $featured, 300); // 5 minutes (300 seconds)
+// 2. Fallback: If no featured, get top viewed public journeys
+if (empty($featured)) {
+    $popStmt = $db->query("SELECT j.*, u.username, u.avatar, c.name AS category_name
+        FROM journeys j
+        JOIN users u ON j.user_id = u.id
+        LEFT JOIN categories c ON j.category_id = c.id
+        WHERE j.visibility = 'public'
+        ORDER BY j.view_count DESC LIMIT 3");
+    $featured = $popStmt->fetchAll();
 }
-
-$categories = getCache('categories_list');
-if ($categories === null) {
-    $catStmt = $db->query("SELECT * FROM categories ORDER BY name");
-    $categories = $catStmt->fetchAll();
-    setCache('categories_list', $categories, 86400); // 24 hours
-}
-
-// Get stats for landing page (Cached for 15 minutes)
-$stats = getCache('landing_stats');
-if ($stats === null) {
-    $totalUsers = $db->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
-    $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='public'")->fetchColumn();
-    $stats = [
-        'totalUsers' => $totalUsers,
-        'totalJourneys' => $totalJourneys
-    ];
-    setCache('landing_stats', $stats, 900); // 15 mins (900 seconds)
-} else {
-    $totalUsers = $stats['totalUsers'];
-    $totalJourneys = $stats['totalJourneys'];
-}
+// Get categories list
+$catStmt = $db->query("SELECT * FROM categories ORDER BY name");
+$categories = $catStmt->fetchAll();
+// Get stats for landing page (Direct query, cache disabled)
+$totalUsers = $db->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
+$totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='public'")->fetchColumn();
 ?>
 
 <!-- Navbar -->
