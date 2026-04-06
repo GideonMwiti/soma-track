@@ -16,6 +16,10 @@ $notifCount = getUnreadNotificationCount($currentUser['id']);
     <title><?= isset($pageTitle) ? sanitize($pageTitle) . ' | ' . SITE_NAME : SITE_NAME; ?></title>
     <meta name="description" content="<?= isset($pageDesc) ? sanitize($pageDesc) : 'Track, share, and prove your learning journey with SomaTrack.'; ?>">
 
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="<?= SITE_URL ?>/assets/img/favicon.png">
+    <link rel="apple-touch-icon" href="<?= SITE_URL ?>/assets/img/apple-touch-icon.png">
+
     <!-- SEO & Canonical -->
     <link rel="canonical" href="<?= isset($canonicalUrl) ? sanitize($canonicalUrl) : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . explode('?', $_SERVER['REQUEST_URI'])[0] ?>">
 
