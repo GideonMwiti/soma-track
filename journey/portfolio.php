@@ -51,10 +51,10 @@ $bodyClass = '';
 <div class="st-portfolio-header">
     <div class="container text-center">
         <div class="st-avatar-initial mb-3 mx-auto" style="width:80px;height:80px;font-size:2rem;">
-            <?= substr(sanitize(!empty($journey['full_name']) ? $journey['full_name'] : $journey['username']), 0, 1) ?>
+            <?= strtoupper(substr(sanitize(ltrim(!empty($journey['full_name']) ? $journey['full_name'] : $journey['username'], '@')), 0, 1)) ?>
         </div>
         <h1 class="fw-bold mb-2"><?= sanitize($journey['title']) ?></h1>
-        <p class="mb-2" style="opacity:0.9;">by <strong><?= sanitize($journey['full_name']) ?></strong> (<?= sanitize($journey['username']) ?>)</p>
+        <p class="mb-2" style="opacity:0.9;">by <strong><?= sanitize(ltrim(!empty($journey['full_name']) ? $journey['full_name'] : $journey['username'], '@')) ?></strong> (<?= sanitize(ltrim($journey['username'], '@')) ?>)</p>
         <?php if ($journey['category_name']): ?>
             <span class="badge bg-light text-dark"><?= sanitize($journey['category_name']) ?></span>
         <?php endif; ?>

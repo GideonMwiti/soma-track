@@ -237,9 +237,9 @@ $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='pub
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div class="card-meta mb-0 d-flex align-items-center gap-2">
                                     <div class="st-avatar-initial" style="width:24px;height:24px;font-size:0.75rem;">
-                                        <?= substr(sanitize(!empty($j['full_name']) ? $j['full_name'] : $j['username']), 0, 1) ?>
+                                        <?= strtoupper(substr(sanitize(ltrim(!empty($j['full_name']) ? $j['full_name'] : $j['username'], '@')), 0, 1)) ?>
                                     </div>
-                                    <span class="small"><?= sanitize($j['username']) ?></span>
+                                    <span class="small"><?= sanitize(ltrim($j['username'], '@')) ?></span>
                                 </div>
                                 <span class="st-badge st-badge-cloned animate-pulse">
                                     <i class="bi bi-fire me-1"></i> <?= number_format($j['clone_count']) ?> clones

@@ -113,9 +113,9 @@ $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll();
                 <div class="card-body">
                     <div class="card-meta">
                         <div class="st-avatar-initial" style="width:24px;height:24px;font-size:0.7rem;">
-                            <?= substr(sanitize(!empty($j['full_name']) ? $j['full_name'] : $j['username']), 0, 1) ?>
+                            <?= strtoupper(substr(sanitize(ltrim(!empty($j['full_name']) ? $j['full_name'] : $j['username'], '@')), 0, 1)) ?>
                         </div>
-                        <span><?= sanitize($j['username']) ?></span>
+                        <span><?= sanitize(ltrim($j['username'], '@')) ?></span>
                         <?php if ($j['category_name']): ?>
                             <span class="st-badge st-badge-primary"><?= sanitize($j['category_name']) ?></span>
                         <?php endif; ?>

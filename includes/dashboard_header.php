@@ -59,9 +59,9 @@ $notifCount = getUnreadNotificationCount($currentUser['id']);
             <div class="dropdown">
                 <button class="btn btn-link text-decoration-none dropdown-toggle st-user-dropdown d-flex align-items-center gap-2" data-bs-toggle="dropdown">
                     <div class="st-avatar-initial" style="width:30px;height:30px;font-size:0.8rem;">
-                        <?= substr(sanitize(!empty($currentUser['full_name']) ? $currentUser['full_name'] : $currentUser['username']), 0, 1) ?>
+                        <?= strtoupper(substr(sanitize(ltrim(!empty($currentUser['full_name']) ? $currentUser['full_name'] : $currentUser['username'], '@')), 0, 1)) ?>
                     </div>
-                    <span class="d-none d-md-inline text-light"><?= sanitize($currentUser['full_name']) ?></span>
+                    <span class="d-none d-md-inline text-light"><?= sanitize(!empty($currentUser['full_name']) ? $currentUser['full_name'] : ltrim($currentUser['username'], '@')) ?></span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end st-dropdown">
                     <li><a class="dropdown-item" href="<?= SITE_URL ?>/user/profile.php"><i class="bi bi-person me-2"></i>Profile</a></li>

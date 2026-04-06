@@ -130,9 +130,9 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
-                        <?= substr(sanitize(!empty($journey['full_name']) ? $journey['full_name'] : $journey['username']), 0, 1) ?>
+                        <?= strtoupper(substr(sanitize(ltrim(!empty($journey['full_name']) ? $journey['full_name'] : $journey['username'], '@')), 0, 1)) ?>
                     </div>
-                    <a href="<?= SITE_URL ?>/user/profile.php?id=<?= $journey['user_id'] ?>" class="text-decoration-none"><?= sanitize($journey['username']) ?></a>
+                    <a href="<?= SITE_URL ?>/user/profile.php?id=<?= $journey['user_id'] ?>" class="text-decoration-none"><?= sanitize(ltrim($journey['username'], '@')) ?></a>
                 </div>
                 <small class="text-muted"><i class="bi bi-eye me-1"></i><?= number_format($journey['view_count']) ?> views</small>
                 <small class="text-muted"><i class="bi bi-copy me-1"></i><?= $journey['clone_count'] ?> clones</small>
