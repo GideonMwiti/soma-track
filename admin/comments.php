@@ -71,12 +71,12 @@ $comments = $stmt->fetchAll();
         <?php foreach ($comments as $c): ?>
         <div class="st-comment">
             <div class="st-avatar-initial" style="width:36px;height:36px;font-size:0.9rem;">
-                <?= substr(sanitize(!empty($c['full_name']) ? $c['full_name'] : $c['username']), 0, 1) ?>
+                <?= strtoupper(substr(sanitize(ltrim(!empty($c['full_name']) ? $c['full_name'] : $c['username'], '@')), 0, 1)) ?>
             </div>
             <div class="flex-grow-1">
                 <div class="st-comment-meta d-flex justify-content-between">
                     <div>
-                        <strong><?= sanitize($c['username']) ?></strong>
+                        <strong><?= sanitize(ltrim($c['username'], '@')) ?></strong>
                         on <em><?= sanitize($c['step_title']) ?></em> in <em><?= sanitize($c['journey_title']) ?></em>
                         · <?= timeAgo($c['created_at']) ?>
                     </div>

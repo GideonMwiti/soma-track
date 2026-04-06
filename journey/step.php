@@ -215,9 +215,9 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
                             <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
-                                <?= substr(sanitize(!empty($log['full_name']) ? $log['full_name'] : $log['username']), 0, 1) ?>
+                                <?= strtoupper(substr(sanitize(ltrim(!empty($log['full_name']) ? $log['full_name'] : $log['username'], '@')), 0, 1)) ?>
                             </div>
-                            <strong style="font-size:0.85rem;"><?= sanitize($log['username']) ?></strong>
+                            <strong style="font-size:0.85rem;"><?= sanitize(ltrim($log['username'], '@')) ?></strong>
                             <small class="text-muted"><?= formatDate($log['log_date']) ?></small>
                         </div>
                         <?php if (isLoggedIn() && (int)$log['user_id'] === getCurrentUserId()): ?>
@@ -307,11 +307,11 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                 <?php foreach ($comments as $comment): ?>
                 <div class="st-comment mb-3" id="comment-<?= $comment['id'] ?>">
                     <div class="st-avatar-initial" style="width:36px;height:36px;font-size:0.9rem;">
-                        <?= substr(sanitize(!empty($comment['full_name']) ? $comment['full_name'] : $comment['username']), 0, 1) ?>
+                        <?= strtoupper(substr(sanitize(ltrim(!empty($comment['full_name']) ? $comment['full_name'] : $comment['username'], '@')), 0, 1)) ?>
                     </div>
                     <div class="flex-grow-1">
                         <div class="st-comment-meta">
-                            <strong><?= sanitize($comment['username']) ?></strong> · <?= timeAgo($comment['created_at']) ?>
+                            <strong><?= sanitize(ltrim($comment['username'], '@')) ?></strong> · <?= timeAgo($comment['created_at']) ?>
                         </div>
                         <div class="st-comment-body mb-2"><?= nl2br(sanitize($comment['content'])) ?></div>
                         
@@ -352,11 +352,11 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                                 <?php foreach ($comment['replies'] as $reply): ?>
                                     <div class="st-comment mb-2" id="comment-<?= $reply['id'] ?>">
                                         <div class="st-avatar-initial" style="width:28px;height:28px;font-size:0.75rem;">
-                                            <?= substr(sanitize(!empty($reply['full_name']) ? $reply['full_name'] : $reply['username']), 0, 1) ?>
+                                            <?= strtoupper(substr(sanitize(ltrim(!empty($reply['full_name']) ? $reply['full_name'] : $reply['username'], '@')), 0, 1)) ?>
                                         </div>
                                         <div class="flex-grow-1">
                                             <div class="st-comment-meta">
-                                                <strong><?= sanitize($reply['username']) ?></strong> · <?= timeAgo($reply['created_at']) ?>
+                                                <strong><?= sanitize(ltrim($reply['username'], '@')) ?></strong> · <?= timeAgo($reply['created_at']) ?>
                                             </div>
                                             <div class="st-comment-body mb-1" style="font-size:0.85rem;"><?= nl2br(sanitize($reply['content'])) ?></div>
                                             <div class="d-flex align-items-center gap-2">

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 06, 2026 at 12:50 PM
+-- Generation Time: Apr 06, 2026 at 01:34 PM
 -- Server version: 8.0.45
 -- PHP Version: 8.2.12
 
@@ -50,7 +50,8 @@ INSERT INTO `admin_logs` (`id`, `admin_id`, `action`, `target_type`, `target_id`
 (5, 1, 'toggle_featured', 'journey', 1, 'Toggled featured status', '::1', '2026-04-06 11:34:58'),
 (6, 1, 'toggle_featured', 'journey', 2, 'Toggled featured status', '::1', '2026-04-06 11:35:01'),
 (7, 1, 'toggle_featured', 'journey', 3, 'Toggled featured status', '::1', '2026-04-06 11:39:34'),
-(8, 1, 'toggle_featured', 'journey', 3, 'Toggled featured status', '::1', '2026-04-06 11:39:57');
+(8, 1, 'toggle_featured', 'journey', 3, 'Toggled featured status', '::1', '2026-04-06 11:39:57'),
+(9, 1, 'delete_user', 'user', 6, 'User deleted', '::1', '2026-04-06 14:33:58');
 
 -- --------------------------------------------------------
 
@@ -280,7 +281,7 @@ CREATE TABLE `journeys` (
 
 INSERT INTO `journeys` (`id`, `user_id`, `title`, `slug`, `description`, `category_id`, `visibility`, `status`, `is_featured`, `total_steps`, `completed_steps`, `clone_count`, `view_count`, `created_at`, `updated_at`) VALUES
 (1, 2, 'Machine Learning with TensorFlow', 'ml-tensorflow-gideon', 'A 10-step deep dive into neural networks.', 4, 'public', 'active', 0, 10, 7, 0, 3, '2026-04-05 11:36:56', '2026-04-06 11:45:10'),
-(2, 2, 'Frontend Web Development in 3 weeks', 'frontend-web-development-in-3-weeks', 'Mastering HTML, CSS, JS, and React.', 1, 'public', 'completed', 1, 5, 5, 3, 5, '2026-04-05 11:36:56', '2026-04-06 13:47:55'),
+(2, 2, 'Frontend Web Development in 3 weeks', 'frontend-web-development-in-3-weeks', 'Mastering HTML, CSS, JS, and React.', 1, 'public', 'completed', 1, 5, 5, 4, 6, '2026-04-05 11:36:56', '2026-04-06 14:18:37'),
 (3, 2, 'AWS Cloud Deployment Essentials', 'aws-cloud-gideon', 'Taking local web apps and deploying them to the cloud using AWS.', 7, 'public', 'completed', 0, 7, 7, 0, 1, '2026-04-05 11:36:56', '2026-04-06 11:39:57'),
 (4, 3, 'UI/UX Foundations: Figma to Web', 'ui-ux-figma-sarah', 'User research, wireframing, and interactive prototypes.', 9, 'public', 'completed', 0, 4, 4, 1, 0, '2026-04-05 11:36:56', '2026-04-05 11:36:56'),
 (5, 3, 'Cross-Platform Apps with React Native', 'react-native-sarah', 'Native mobile applications for iOS and Android using Expo.', 2, 'public', 'completed', 1, 6, 6, 1, 2, '2026-04-05 11:36:56', '2026-04-06 13:45:14'),
@@ -332,7 +333,8 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `link`
 (16, 2, 'aha_vote', 'New Aha! Vote', '@Max marked \"HTML5 Semantics\" as Breakthrough', 'http://localhost/soma-track/journey/step.php?id=11', 0, '2026-04-06 13:46:23'),
 (17, 2, 'clone', 'Journey Cloned!', '@Max cloned your journey \"Frontend Web Development in 3 weeks\"', 'http://localhost/soma-track/journey/view.php?id=2', 0, '2026-04-06 13:46:39'),
 (18, 2, 'aha_vote', 'New Aha! Vote', '@Moraa marked \"HTML5 Semantics\" as Breakthrough', 'http://localhost/soma-track/journey/step.php?id=11', 0, '2026-04-06 13:47:47'),
-(19, 2, 'clone', 'Journey Cloned!', '@Moraa cloned your journey \"Frontend Web Development in 3 weeks\"', 'http://localhost/soma-track/journey/view.php?id=2', 0, '2026-04-06 13:47:55');
+(19, 2, 'clone', 'Journey Cloned!', '@Moraa cloned your journey \"Frontend Web Development in 3 weeks\"', 'http://localhost/soma-track/journey/view.php?id=2', 0, '2026-04-06 13:47:55'),
+(20, 2, 'clone', 'Journey Cloned!', '@Learner_ksu cloned your journey \"Frontend Web Development in 3 weeks\"', 'http://localhost/soma-track/journey/view.php?id=2', 0, '2026-04-06 14:18:37');
 
 -- --------------------------------------------------------
 
@@ -704,7 +706,7 @@ ALTER TABLE `user_badges`
 -- AUTO_INCREMENT for table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `aha_votes`
@@ -728,7 +730,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `cloned_journeys`
 --
 ALTER TABLE `cloned_journeys`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `contact_messages`
@@ -740,19 +742,19 @@ ALTER TABLE `contact_messages`
 -- AUTO_INCREMENT for table `daily_logs`
 --
 ALTER TABLE `daily_logs`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `journeys`
 --
 ALTER TABLE `journeys`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `private_notes`
@@ -764,31 +766,31 @@ ALTER TABLE `private_notes`
 -- AUTO_INCREMENT for table `steps`
 --
 ALTER TABLE `steps`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
 -- AUTO_INCREMENT for table `step_comments`
 --
 ALTER TABLE `step_comments`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `streaks`
 --
 ALTER TABLE `streaks`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `user_badges`
 --
 ALTER TABLE `user_badges`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Constraints for dumped tables
