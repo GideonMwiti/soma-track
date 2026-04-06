@@ -20,6 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Invalid request. Please try again.';
     }
 
+    if (empty($errors) && !checkRateLimit('login_attempts', 5, 300)) {
+        $errors[] = 'Too many login attempts. Please wait 5 minutes.';
+    }
+
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $oldEmail = $email;
@@ -35,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
+            session_regenerate_id(true);
             setUserSession($user);
 
             // Update last activity

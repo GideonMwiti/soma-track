@@ -1,5 +1,14 @@
 RewriteEngine On
 
+# Force HTTPS on production (ignores localhost)
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP_HOST} !^localhost
+RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Dynamic Sitemap
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
 # Protect directories
 Options -Indexes
 
@@ -15,3 +24,11 @@ RewriteRule ^includes/ - [F,L]
 
 # Set default charset
 AddDefaultCharset UTF-8
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>

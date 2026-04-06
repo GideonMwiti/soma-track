@@ -152,29 +152,31 @@ $totalJourneys = $db->query("SELECT COUNT(*) FROM journeys WHERE visibility='pub
     </div>
 </section>
 
-            <div class="col-lg-12" id="philosophy">
-                <div class="st-brand-section">
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <div class="st-brand-card">
-                                <div class="st-brand-icon"><i class="bi bi-eye"></i></div>
-                                <h3 class="st-brand-title">Our Vision</h3>
-                                <p class="st-brand-text">To become the global standard for verifiable learning and collaborative skill building, where every learner's journey is a proof of expertise.</p>
-                            </div>
+<section id="philosophy" class="py-5">
+    <div class="container">
+        <h2 class="visually-hidden">Core Philosophy</h2>
+        <div class="col-lg-12">
+            <div class="st-brand-section">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="st-brand-card">
+                            <div class="st-brand-icon"><i class="bi bi-eye"></i></div>
+                            <h3 class="st-brand-title">Our Vision</h3>
+                            <p class="st-brand-text">To become the global standard for verifiable learning and collaborative skill building, where every learner's journey is a proof of expertise.</p>
                         </div>
-                        <div class="col-md-4">
-                            <div class="st-brand-card">
-                                <div class="st-brand-icon"><i class="bi bi-bullseye"></i></div>
-                                <h3 class="st-brand-title">Our Mission</h3>
-                                <p class="st-brand-text">We empower individuals to document their growth, share their knowledge, and connect with a community that values progress over static credentials.</p>
-                            </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="st-brand-card">
+                            <div class="st-brand-icon"><i class="bi bi-bullseye"></i></div>
+                            <h3 class="st-brand-title">Our Mission</h3>
+                            <p class="st-brand-text">We empower individuals to document their growth, share their knowledge, and connect with a community that values progress over static credentials.</p>
                         </div>
-                        <div class="col-md-4">
-                            <div class="st-brand-card">
-                                <div class="st-brand-icon"><i class="bi bi-compass"></i></div>
-                                <h3 class="st-brand-title">Our Philosophy</h3>
-                                <p class="st-brand-text">Learning is a journey, not a destination. We believe in transparency, consistency, and the power of collaborative roadmaps.</p>
-                            </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="st-brand-card">
+                            <div class="st-brand-icon"><i class="bi bi-compass"></i></div>
+                            <h3 class="st-brand-title">Our Philosophy</h3>
+                            <p class="st-brand-text">Learning is a journey, not a destination. We believe in transparency, consistency, and the power of collaborative roadmaps.</p>
                         </div>
                     </div>
                 </div>

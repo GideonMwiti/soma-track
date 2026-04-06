@@ -103,6 +103,9 @@ $ahaTotal->execute([$journeyId]);
 $totalAha = (int)$ahaTotal->fetchColumn();
 
 $pageTitle = $journey['title'];
+$pageDesc = $journey['description'] ? truncateText($journey['description'], 160) : 'View this learning journey by ' . $journey['username'];
+$canonicalUrl = SITE_URL . '/journey/view.php?id=' . $journeyId;
+$ogImage = SITE_URL . '/assets/img/default-og.png'; // Update if journeys have custom thumbnails in the future
 require_once __DIR__ . '/../includes/dashboard_header.php';
 ?>
 
