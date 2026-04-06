@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $username  = trim($_POST['username'] ?? '');
+    $username  = '@' . ltrim($username, '@'); // Ensure exactly one @ at the start
     $email     = trim($_POST['email'] ?? '');
     $fullName  = trim($_POST['full_name'] ?? '');
     $password  = $_POST['password'] ?? '';
@@ -29,11 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $old = ['username' => $username, 'email' => $email, 'full_name' => $fullName];
 
     // Validate
-    if (empty($username) || strlen($username) < 3 || strlen($username) > 50) {
-        $errors[] = 'Username must be between 3 and 50 characters.';
+    if ($username === '@' || strlen($username) < 4 || strlen($username) > 50) {
+        $errors[] = 'Username must be between 3 and 49 characters (excluding @).';
     }
-    if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-        $errors[] = 'Username can only contain letters, numbers, and underscores.';
+    if (!preg_match('/^@[a-zA-Z0-9_]+$/', $username)) {
+        $errors[] = 'Username can only contain letters, numbers, and underscores after the @ symbol. Only one @ is allowed.';
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Please enter a valid email address.';
@@ -108,7 +109,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="mb-3">
                 <label class="st-form-label">Username</label>
                 <input type="text" name="username" class="form-control st-form-control" placeholder="Input username" value="<?= sanitize($old['username']) ?>" required>
-                <small class="text-muted d-block mt-1">Example: learner_123 (letters, numbers, underscores only - no @)</small>
+                <small class="text-muted d-block mt-1">Example: @learner_123</small>
             </div>
             <div class="mb-3">
                 <label class="st-form-label">Email</label>

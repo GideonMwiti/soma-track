@@ -24,11 +24,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($section === 'profile') {
         $fullName = trim($_POST['full_name'] ?? '');
         $bio = trim($_POST['bio'] ?? '') ?: null;
+        
+        $username = trim($_POST['username'] ?? '');
+        $username = '@' . ltrim($username, '@');
 
         if (empty($fullName)) $errors[] = 'Full name is required.';
+        if ($username === '@' || strlen($username) < 4 || strlen($username) > 50) {
+            $errors[] = 'Username must be between 3 and 49 characters (excluding @).';
+        }
+        if (!preg_match('/^@[a-zA-Z0-9_]+$/', $username)) {
+            $errors[] = 'Username can only contain letters, numbers, and underscores after the @. Only one @ is allowed.';
+        }
+        
+        if (empty($errors)) {
+            $stmt = $db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+            $stmt->execute([$username, $userId]);
+            if ($stmt->fetch()) {
+                $errors[] = 'Username is already taken.';
+            }
+        }
 
         if (empty($errors)) {
-            $db->prepare("UPDATE users SET full_name = ?, bio = ? WHERE id = ?")->execute([$fullName, $bio, $userId]);
+            $db->prepare("UPDATE users SET full_name = ?, username = ?, bio = ? WHERE id = ?")->execute([$fullName, $username, $bio, $userId]);
             $_SESSION['full_name'] = $fullName;
             setFlash('success', 'Profile updated!');
             redirect(SITE_URL . '/user/settings.php');
@@ -75,6 +92,11 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                 <div class="mb-3">
                     <label class="st-form-label">Full Name</label>
                     <input type="text" name="full_name" class="form-control st-form-control" value="<?= sanitize($user['full_name']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="st-form-label">Username</label>
+                    <input type="text" name="username" class="form-control st-form-control" value="<?= sanitize($user['username']) ?>" required>
+                    <small class="text-muted d-block mt-1">Example: @learner_123</small>
                 </div>
                 <div class="mb-3">
                     <label class="st-form-label">Bio</label>

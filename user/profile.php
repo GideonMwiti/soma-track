@@ -74,7 +74,7 @@ require_once __DIR__ . '/../includes/dashboard_header.php';
                 <?= substr(sanitize(!empty($profile['full_name']) ? $profile['full_name'] : $profile['username']), 0, 1) ?>
             </div>
             <h4 class="fw-bold mb-1"><?= sanitize($profile['full_name']) ?></h4>
-            <p class="text-muted mb-2">@<?= sanitize($profile['username']) ?></p>
+            <p class="text-muted mb-2"><?= sanitize($profile['username']) ?></p>
             <?php if ($profile['role'] === 'admin'): ?>
                 <span class="badge bg-primary mb-3">Administrator</span>
             <?php endif; ?>

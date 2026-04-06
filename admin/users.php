@@ -75,7 +75,7 @@ $allUsers = $users->fetchAll();
                             </div>
                             <div>
                                 <div class="fw-semibold"><?= sanitize($u['full_name']) ?></div>
-                                <small class="text-muted">@<?= sanitize($u['username']) ?></small>
+                                <small class="text-muted"><?= sanitize($u['username']) ?></small>
                             </div>
                         </div>
                     </td>

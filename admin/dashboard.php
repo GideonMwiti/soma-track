@@ -84,7 +84,7 @@ $adminLogs = $db->query("SELECT al.*, u.username FROM admin_logs al JOIN users u
                                     </div>
                                     <div>
                                           <div class="fw-semibold"><?= sanitize($u['full_name']) ?></div>
-                                          <small class="text-muted">@<?= sanitize($u['username']) ?> &bull; <?= sanitize($u['email']) ?></small>
+                                          <small class="text-muted"><?= sanitize($u['username']) ?> &bull; <?= sanitize($u['email']) ?></small>
                                     </div>
                                 </div>
                             </td>
