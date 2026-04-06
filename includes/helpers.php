@@ -452,6 +452,8 @@ function checkRateLimit(string $endpoint, int $limit = 60, int $window = 3600): 
  */
 function getJourneyActionText($ownerId, $completedSteps, $isLoggedIn) {
     if (!$isLoggedIn || (function_exists('isAdmin') && isAdmin())) return "Explore Path";
-    if (isLoggedIn() && (getCurrentUserId() == $ownerId || $completedSteps > 0)) return "Resume Journey";
-    return "Start Learning";
+    if (getCurrentUserId() == $ownerId) {
+        return $completedSteps > 0 ? "Resume Journey" : "Start Learning";
+    }
+    return "Explore Path";
 }
